@@ -44,7 +44,7 @@ func deployCdnAction(cfg map[string]any) (*Response, error) {
 	}
 
 	// 2. 计算证书字符串的SHA256值
-	sha256, err := GetSHA256(certBundle.Certificate)
+	sha256, err := core.GetSHA256(certBundle.Certificate)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get SHA256 of cert: %w", err)
 	}
@@ -136,7 +136,7 @@ func deployIcdnAction(cfg map[string]any) (*Response, error) {
 	}
 
 	// 2. 计算证书字符串的SHA256值
-	sha256, err := GetSHA256(certBundle.Certificate)
+	sha256, err := core.GetSHA256(certBundle.Certificate)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get SHA256 of cert: %w", err)
 	}
@@ -228,7 +228,7 @@ func deployAccessoneAction(cfg map[string]any) (*Response, error) {
 	}
 
 	// 2. 计算证书字符串的SHA256值
-	sha256, err := GetSHA256(certBundle.Certificate)
+	sha256, err := core.GetSHA256(certBundle.Certificate)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get SHA256 of cert: %w", err)
 	}
@@ -319,14 +319,14 @@ func deployCcmsAction(cfg map[string]any) (*Response, error) {
 	}
 
 	// 2. 计算证书字符串的SHA256值
-	sha256, err := GetSHA256(certBundle.Certificate)
+	sha256, err := core.GetSHA256(certBundle.Certificate)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get SHA256 of cert: %w", err)
 	}
 
 	// 3. 取SHA256的前6位作为唯一标识
 	sha256Short := sha256[:6]
-	name := fmt.Sprintf("allinssl-%s", sha256Short)
+	note := fmt.Sprintf("allinssl-%s", sha256Short)
 
 	// 创建证书管理服务客户端
 	ccmsClient, err := ccms.NewClient(accessKey, secretKey)
@@ -340,7 +340,7 @@ func deployCcmsAction(cfg map[string]any) (*Response, error) {
 		return nil, fmt.Errorf("查询证书是否存在错误: %w", err)
 	}
 	for _, certificate := range queryCertList.ReturnObj.List {
-		if certificate.Name == name {
+		if certificate.Name == note {
 			return &Response{
 				Status:  "success",
 				Message: "证书已存在",
@@ -352,7 +352,7 @@ func deployCcmsAction(cfg map[string]any) (*Response, error) {
 	}
 
 	// 2. 上传证书
-	_, err = ccmsClient.PostUpdateCertInfo(name, certBundle.Certificate, certBundle.PrivateKey)
+	_, err = ccmsClient.PostUpdateCertInfo(note, certBundle.Certificate, certBundle.PrivateKey)
 	if err != nil {
 		return nil, fmt.Errorf("上传证书错误: %w", err)
 	}

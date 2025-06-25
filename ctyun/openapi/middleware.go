@@ -119,9 +119,9 @@ func PreRequestMiddleware(accessKeyId, secretAccessKey string) resty.RequestMidd
 		signStr := base64.StdEncoding.EncodeToString(signature)
 
 		// 设置请求头
-		r.Header.Set("ctyun-eop-request-id", reqID)
-		r.Header.Set("eop-date", eopDate)
-		r.Header.Set("eop-authorization", fmt.Sprintf("%s Headers=%s Signature=%s", accessKeyId, headersListStr, signStr))
+		r.SetHeader("ctyun-eop-request-id", reqID)
+		r.SetHeader("eop-date", eopDate)
+		r.SetHeader("eop-authorization", fmt.Sprintf("%s Headers=%s Signature=%s", accessKeyId, headersListStr, signStr))
 
 		return nil
 	}

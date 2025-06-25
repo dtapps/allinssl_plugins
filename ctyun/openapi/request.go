@@ -11,6 +11,7 @@ type Client struct {
 	*resty.Client
 }
 
+// NewClient 创建请求客户端
 func NewClient(endpoint string, accessKeyId string, secretAccessKey string) (*Client, error) {
 	if endpoint == "" {
 		return nil, fmt.Errorf("check endpoint")
@@ -30,7 +31,12 @@ func NewClient(endpoint string, accessKeyId string, secretAccessKey string) (*Cl
 		resty.PrepareRequestMiddleware,                     // 先调用，创建 RawRequest
 		PreRequestMiddleware(accessKeyId, secretAccessKey), // 再调用，自定义中间件安全使用 RawRequest
 	)
-	// client.EnableDebug()
 
 	return &Client{client}, nil
+}
+
+// WithDebug 开启调试模式
+func (c *Client) WithDebug() *Client {
+	c.EnableDebug()
+	return c
 }
