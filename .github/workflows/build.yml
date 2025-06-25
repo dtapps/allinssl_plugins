@@ -1,0 +1,75 @@
+name: 打包模块
+
+on:
+  workflow_dispatch:
+    inputs:
+      module:
+        description: '选择要打包的模块目录'
+        required: true
+        default: 'ctyun'
+        type: choice
+        options:
+          - ctyun
+      arch:
+        description: '选择架构'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - amd64
+          - arm64
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置Go环境
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: true
+
+      - name: 安装依赖
+        run: go mod download
+
+      - name: 构建指定模块
+        run: |
+          # 创建输出目录
+          mkdir -p bin
+          
+          # 处理模块参数
+          if [ "${{ github.event.inputs.module }}" = "all" ]; then
+            MODULES=$(ls -d */ | grep -v 'bin/' | sed 's#/##')
+          else
+            MODULES=${{ github.event.inputs.module }}
+          fi
+          
+          # 处理架构参数
+          if [ "${{ github.event.inputs.arch }}" = "all" ]; then
+            ARCHES=(amd64 arm64)
+          else
+            ARCHES=(${{ github.event.inputs.arch }})
+          fi
+          
+          # 循环构建
+          for module in $MODULES; do
+            if [ -d "$module" ] && [ -f "$module/Makefile" ]; then
+              echo "开始构建模块: $module"
+              for arch in "${ARCHES[@]}"; do
+                echo "构建架构: $arch"
+                make -C $module build-linux-$arch OUTPUT=$(pwd)/bin/$module
+              done
+            else
+              echo "警告: 模块 $module 不存在或缺少Makefile"
+            fi
+          done
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v3
+        with:
+          name: allinssl-plugins-${{ github.event.inputs.module }}-${{ github.event.inputs.arch }}
+          path: bin/
