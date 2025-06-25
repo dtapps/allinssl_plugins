@@ -31,6 +31,8 @@ on:
 jobs:
   build: # 构建任务
     runs-on: ubuntu-latest # 在 Ubuntu 最新版本上运行
+    permissions: # <--- 核心更改：为整个 Job 授予写入权限
+      contents: write # 授予对仓库内容的写入权限，这通常包含创建 Release 的权限
 
     steps:
       - name: 检出代码 # 步骤：检出 Git 仓库代码
@@ -59,7 +61,7 @@ jobs:
           
           # 处理模块参数：如果选择 "all"，则列出所有子目录作为模块；否则使用指定模块
           if [ "${{ github.event.inputs.module }}" = "all" ]; then
-            # ls -d */ 列出所有目录，grep -v 'bin/' 排除 bin 目录，sed 's#/##' 去掉斜杠
+            # ls -d */ 列出所有目录，grep -v 'bin/' 排 除 bin 目录，sed 's#/##' 去掉斜杠
             MODULES=$(ls -d */ | grep -v 'bin/' | sed 's#/##')
           else
             # 使用用户输入的指定模块
@@ -104,18 +106,24 @@ jobs:
           # 构建完成后，列出 bin/ 目录的详细内容，以检查是否有文件生成
           echo "构建完成后，检查 bin/ 目录内容："
           ls -laR bin/ || echo "bin/ 目录为空或不存在文件。" # 如果 ls 失败，则打印消息
+          
+          # 尝试使用 tree 命令显示目录结构，如果系统没有安装则忽略错误
+          command -v tree >/dev/null 2>&1 && echo "bin/ 目录树形结构：" && tree bin/ || echo "tree 命令未找到，无法显示树形结构。"
 
       - name: 上传构建产物 # 步骤：上传构建好的二进制文件作为工作流产物，供后续 Release 任务使用
         uses: actions/upload-artifact@v4 # 使用 actions/upload-artifact@v4
         with:
           name: allinssl-build-artifacts # <--- 核心更改：名称固定为 'allinssl-build-artifacts'
           path: bin/ # 上传 bin/ 目录下的所有文件
+        continue-on-error: false # <--- 新增：如果 bin/ 目录为空，则此步骤会失败，导致整个 job 失败
 
   release: # 发布任务
     needs: build # 依赖于 build 任务，只有 build 成功后才执行
     runs-on: ubuntu-latest
     # 仅当构建成功时才创建 Release
     if: success()
+    permissions: # <--- 核心更改：为 release Job 明确授予权限
+      contents: write # 授予对仓库内容的写入权限，这通常包含创建 Release 的权限
 
     steps:
       - name: 下载构建产物 # 步骤：下载 build 任务中上传的产物
