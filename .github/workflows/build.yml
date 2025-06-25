@@ -138,7 +138,7 @@ jobs:
         uses: softprops/action-gh-release@v1 # 使用 softprops/action-gh-release@v1
         with:
           # 根据是否提供了版本号来生成不同的 Tag 名称
-          tag_name: ${{ github.event.inputs.version && format('v{0}', github.event.inputs.version) || format('build-{0}', github.run_number) }}
+          tag_name: ${{ format('{0}-{1}', github.event.inputs.module, github.event.inputs.version || format('build-{0}', github.run_number)) }}
           # Release 的标题
           name: ${{ github.event.inputs.module }} - ${{ github.event.inputs.arch }} 插件 (${{ github.event.inputs.version && format('v{0}', github.event.inputs.version) || format('构建 {0}', github.run_number) }})
           # Release 的描述信息
