@@ -19,6 +19,11 @@ on:
           - all
           - amd64
           - arm64
+      version: 
+        description: '输入插件版本号（可选）'
+        required: false 
+        default: '' 
+        type: string
 
 jobs:
   build:
@@ -69,7 +74,7 @@ jobs:
           done
 
       - name: 上传构建产物
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: allinssl-plugins-${{ github.event.inputs.module }}-${{ github.event.inputs.arch }}
+          name: ${{ format('allinssl-plugins-{0}-{1}{2}', github.event.inputs.module, github.event.inputs.arch, (github.event.inputs.version && format('-v{0}', github.event.inputs.version)) || '') }}
           path: bin/
