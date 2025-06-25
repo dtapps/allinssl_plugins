@@ -78,3 +78,34 @@ jobs:
         with:
           name: ${{ format('allinssl-plugins-{0}-{1}{2}', github.event.inputs.module, github.event.inputs.arch, (github.event.inputs.version && format('-v{0}', github.event.inputs.version)) || '') }}
           path: bin/
+
+  release: 
+    needs: build 
+    runs-on: ubuntu-latest
+    if: success()
+
+    steps:
+      - name: 下载构建产物 
+        uses: actions/download-artifact@v4
+        with:
+          name: allinssl-build-artifacts 
+          path: ./downloaded-artifacts
+
+      - name: 创建 Release 
+        id: create_release 
+        uses: softprops/action-gh-release@v1 
+        with:
+          tag_name: ${{ github.event.inputs.version && format('v{0}', github.event.inputs.version) || format('build-{0}', github.run_number) }}
+          name: ${{ github.event.inputs.module }} - ${{ github.event.inputs.arch }} 插件 (${{ github.event.inputs.version && format('v{0}', github.event.inputs.version) || format('构建 {0}', github.run_number) }})
+          body: |
+            # 自动生成 Release
+            - **模块**: ${{ github.event.inputs.module }}
+            - **架构**: ${{ github.event.inputs.arch }}
+            - **版本号**: ${{ github.event.inputs.version || '未指定' }}
+            
+            此 Release 包含了针对所选模块和架构的打包文件。
+          draft: false # 是否作为草稿发布 (true 为草稿，false 为正式发布)
+          prerelease: false # 是否作为预发布版本 (true 为预发布，false 为正式发布)
+          files: ./downloaded-artifacts/**/* 
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
