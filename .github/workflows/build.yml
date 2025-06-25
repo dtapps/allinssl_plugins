@@ -10,6 +10,7 @@ on:
         type: choice
         options:
           - ctyun
+          - nginx_proxy_manager
           # 如果有更多模块，可以在这里添加，例如：
           # - aliyun
           # - tencentcloud
