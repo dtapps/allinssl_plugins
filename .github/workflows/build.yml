@@ -1,16 +1,19 @@
-name: 打包模块
+name: 打包模块 # 工作流名称
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: # 允许手动触发工作流
     inputs:
-      module:
+      module: # 模块选择输入
         description: '选择要打包的模块目录'
         required: true
         default: 'ctyun'
         type: choice
         options:
           - ctyun
-      arch:
+          # 如果有更多模块，可以在这里添加，例如：
+          # - aliyun
+          # - tencentcloud
+      arch: # 架构选择输入
         description: '选择架构'
         required: true
         default: 'all'
@@ -19,84 +22,117 @@ on:
           - all
           - amd64
           - arm64
-      version: 
+      version: # 新增：版本号输入
         description: '输入插件版本号（可选）'
-        required: false 
-        default: '' 
+        required: false # 版本号可以不填
+        default: '' # 默认值为空字符串
         type: string
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  build: # 构建任务
+    runs-on: ubuntu-latest # 在 Ubuntu 最新版本上运行
+
     steps:
-      - name: 检出代码
-        uses: actions/checkout@v4
+      - name: 检出代码 # 步骤：检出 Git 仓库代码
+        uses: actions/checkout@v4 # 使用 actions/checkout@v4
 
-      - name: 设置Go环境
-        uses: actions/setup-go@v5
+      - name: 设置Go环境 # 步骤：设置 Go 语言环境
+        uses: actions/setup-go@v5 # 使用 actions/setup-go@v5
         with:
-          go-version: '1.24'
-          cache: true
+          go-version: '1.24' # 指定 Go 版本
+          cache: true # 启用 Go 模块缓存，加快后续构建速度
 
-      - name: 安装依赖
+      - name: 安装依赖 # 步骤：下载 Go 模块依赖
         run: go mod download
 
-      - name: 构建指定模块
+      - name: 构建指定模块 # 步骤：根据选择的模块和架构进行构建
         run: |
+          # 打印当前工作目录，以便调试
+          echo "当前工作目录：$(pwd)"
+          
           # 创建输出目录
           mkdir -p bin
           
-          # 处理模块参数
+          # 检查 bin 目录是否已创建
+          echo "检查 bin/ 目录是否存在..."
+          ls -ld bin/
+          
+          # 处理模块参数：如果选择 "all"，则列出所有子目录作为模块；否则使用指定模块
           if [ "${{ github.event.inputs.module }}" = "all" ]; then
+            # ls -d */ 列出所有目录，grep -v 'bin/' 排除 bin 目录，sed 's#/##' 去掉斜杠
             MODULES=$(ls -d */ | grep -v 'bin/' | sed 's#/##')
           else
+            # 使用用户输入的指定模块
             MODULES=${{ github.event.inputs.module }}
           fi
           
-          # 处理架构参数
+          # 处理架构参数：如果选择 "all"，则构建 amd64 和 arm64；否则使用指定架构
           if [ "${{ github.event.inputs.arch }}" = "all" ]; then
-            ARCHES=(amd64 arm64)
+            ARCHES=(amd64 arm64) # 定义支持的架构数组
           else
-            ARCHES=(${{ github.event.inputs.arch }})
+            ARCHES=(${{ github.event.inputs.arch }}) # 使用用户输入的指定架构
           fi
           
-          # 循环构建
+          # 循环遍历每个模块进行构建
           for module in $MODULES; do
+            # 检查模块目录是否存在且包含 Makefile 文件
             if [ -d "$module" ] && [ -f "$module/Makefile" ]; then
+              echo "--------------------------------------------------"
               echo "开始构建模块: $module"
+              echo "进入模块目录: $(pwd)/$module"
+              
+              # 循环遍历每个架构进行构建
               for arch in "${ARCHES[@]}"; do
                 echo "构建架构: $arch"
-                make -C $module build-linux-$arch OUTPUT=$(pwd)/bin/$module
+                # 执行 Makefile 中的构建命令，OUTPUT 指定输出路径
+                # 假设你的 Makefile 中有 build-linux-amd64 和 build-linux-arm64 等目标
+                # ***重要提示***：请确保你的模块内部的 Makefile 正确使用了 OUTPUT 变量。
+                # 例如，在你的 ctyun/Makefile 中，可能需要类似这样的规则：
+                # build-linux-amd64:
+                #    GOOS=linux GOARCH=amd64 go build -o $(OUTPUT)/my_plugin_name-amd64 .
+                # 请确保 $(OUTPUT) 被正确地用作最终二进制文件的目标目录。
+                make -C "$module" "build-linux-$arch" OUTPUT="$(pwd)/bin/$module"
               done
+              echo "模块 $module 构建完成。"
+              echo "--------------------------------------------------"
             else
+              # 如果模块不存在或缺少 Makefile，则发出警告
               echo "警告: 模块 $module 不存在或缺少Makefile"
             fi
           done
+          
+          # 构建完成后，列出 bin/ 目录的详细内容，以检查是否有文件生成
+          echo "构建完成后，检查 bin/ 目录内容："
+          ls -laR bin/ || echo "bin/ 目录为空或不存在文件。" # 如果 ls 失败，则打印消息
 
-      - name: 上传构建产物
-        uses: actions/upload-artifact@v4
+      - name: 上传构建产物 # 步骤：上传构建好的二进制文件作为工作流产物，供后续 Release 任务使用
+        uses: actions/upload-artifact@v4 # 使用 actions/upload-artifact@v4
         with:
-          name: ${{ format('allinssl-plugins-{0}-{1}{2}', github.event.inputs.module, github.event.inputs.arch, (github.event.inputs.version && format('-v{0}', github.event.inputs.version)) || '') }}
-          path: bin/
+          name: allinssl-build-artifacts # <--- 核心更改：名称固定为 'allinssl-build-artifacts'
+          path: bin/ # 上传 bin/ 目录下的所有文件
 
-  release: 
-    needs: build 
+  release: # 发布任务
+    needs: build # 依赖于 build 任务，只有 build 成功后才执行
     runs-on: ubuntu-latest
+    # 仅当构建成功时才创建 Release
     if: success()
 
     steps:
-      - name: 下载构建产物 
+      - name: 下载构建产物 # 步骤：下载 build 任务中上传的产物
         uses: actions/download-artifact@v4
         with:
-          name: allinssl-build-artifacts 
-          path: ./downloaded-artifacts
+          name: allinssl-build-artifacts # 与 upload-artifact 的 name 保持一致
+          path: ./downloaded-artifacts # 下载到这个目录
 
-      - name: 创建 Release 
-        id: create_release 
-        uses: softprops/action-gh-release@v1 
+      - name: 创建 Release # 步骤：创建 GitHub Release
+        id: create_release # 为此步骤指定 ID，以便获取其输出
+        uses: softprops/action-gh-release@v1 # 使用 softprops/action-gh-release@v1
         with:
+          # 根据是否提供了版本号来生成不同的 Tag 名称
           tag_name: ${{ github.event.inputs.version && format('v{0}', github.event.inputs.version) || format('build-{0}', github.run_number) }}
+          # Release 的标题
           name: ${{ github.event.inputs.module }} - ${{ github.event.inputs.arch }} 插件 (${{ github.event.inputs.version && format('v{0}', github.event.inputs.version) || format('构建 {0}', github.run_number) }})
+          # Release 的描述信息
           body: |
             # 自动生成 Release
             - **模块**: ${{ github.event.inputs.module }}
@@ -106,6 +142,8 @@ jobs:
             此 Release 包含了针对所选模块和架构的打包文件。
           draft: false # 是否作为草稿发布 (true 为草稿，false 为正式发布)
           prerelease: false # 是否作为预发布版本 (true 为预发布，false 为正式发布)
-          files: ./downloaded-artifacts/**/* 
+          # 将下载的产物作为 Release 附件上传
+          files: ./downloaded-artifacts/**/* # 匹配下载目录下的所有文件和子文件
         env:
+          # GITHUB_TOKEN 是 GitHub Actions 自动提供的权限 Token，用于进行 API 操作
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
