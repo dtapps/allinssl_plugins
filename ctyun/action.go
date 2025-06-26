@@ -37,18 +37,11 @@ func deployCdnAction(cfg map[string]any) (*Response, error) {
 		return nil, fmt.Errorf("domain is required and must be a string")
 	}
 
-	// 1. 解析证书字符串
+	// 解析证书字符串
 	certBundle, err := core.ParseCertBundle([]byte(certStr), []byte(keyStr))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse cert bundle: %w", err)
 	}
-
-	// 2. 计算证书字符串的SHA256值
-	sha256, err := core.GetSHA256(certBundle.Certificate)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get SHA256 of cert: %w", err)
-	}
-	note := fmt.Sprintf("allinssl-%s", sha256)
 
 	// 创建CDN加速客户端
 	cdnClient, err := cdn.NewClient(accessKey, secretKey)
@@ -66,7 +59,7 @@ func deployCdnAction(cfg map[string]any) (*Response, error) {
 	}
 
 	// 2. 检查域名是否配置了现存证书
-	if queryDomainInfo.ReturnObj.CertName == note {
+	if queryDomainInfo.ReturnObj.CertName == certBundle.GetNote() {
 		return &Response{
 			Status:  "success",
 			Message: "证书已绑定域名",
@@ -78,16 +71,16 @@ func deployCdnAction(cfg map[string]any) (*Response, error) {
 	}
 
 	// 3. 查询证书是否已存，不存在就上传证书
-	queryCertInfo, _ := cdnClient.GetQueryCertInfo(note)
-	if queryCertInfo.ReturnObj.Result.Name != note {
-		_, err = cdnClient.PostUpdateCertInfo(note, certBundle.PrivateKey, certBundle.Certificate)
+	queryCertInfo, _ := cdnClient.GetQueryCertInfo(certBundle.GetNote())
+	if queryCertInfo.ReturnObj.Result.Name != certBundle.GetNote() {
+		_, err = cdnClient.PostUpdateCertInfo(certBundle.GetNote(), certBundle.PrivateKey, certBundle.Certificate)
 		if err != nil {
 			return nil, fmt.Errorf("上传证书失败: %w", err)
 		}
 	}
 
 	// 4. 更新证书到域名
-	_, err = cdnClient.PostUpdateDomainInfo(domain, note)
+	_, err = cdnClient.PostUpdateDomainInfo(domain, certBundle.GetNote())
 	if err != nil {
 		return nil, fmt.Errorf("更新证书到域名失败: %w", err)
 	}
@@ -129,18 +122,11 @@ func deployIcdnAction(cfg map[string]any) (*Response, error) {
 		return nil, fmt.Errorf("domain is required and must be a string")
 	}
 
-	// 1. 解析证书字符串
+	// 解析证书字符串
 	certBundle, err := core.ParseCertBundle([]byte(certStr), []byte(keyStr))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse cert bundle: %w", err)
 	}
-
-	// 2. 计算证书字符串的SHA256值
-	sha256, err := core.GetSHA256(certBundle.Certificate)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get SHA256 of cert: %w", err)
-	}
-	note := fmt.Sprintf("allinssl-%s", sha256)
 
 	// 创建全站加速客户端
 	icdnClient, err := icdn.NewClient(accessKey, secretKey)
@@ -158,7 +144,7 @@ func deployIcdnAction(cfg map[string]any) (*Response, error) {
 	}
 
 	// 2. 检查域名是否配置了现存证书
-	if queryDomainInfo.ReturnObj.CertName == note {
+	if queryDomainInfo.ReturnObj.CertName == certBundle.GetNote() {
 		return &Response{
 			Status:  "success",
 			Message: "证书已绑定域名",
@@ -170,16 +156,16 @@ func deployIcdnAction(cfg map[string]any) (*Response, error) {
 	}
 
 	// 3. 查询证书是否已存，不存在就上传证书
-	queryCertInfo, _ := icdnClient.GetQueryCertInfo(note)
-	if queryCertInfo.ReturnObj.Result.Name != note {
-		_, err = icdnClient.PostUpdateCertInfo(note, certBundle.PrivateKey, certBundle.Certificate)
+	queryCertInfo, _ := icdnClient.GetQueryCertInfo(certBundle.GetNote())
+	if queryCertInfo.ReturnObj.Result.Name != certBundle.GetNote() {
+		_, err = icdnClient.PostUpdateCertInfo(certBundle.GetNote(), certBundle.PrivateKey, certBundle.Certificate)
 		if err != nil {
 			return nil, fmt.Errorf("上传证书失败: %w", err)
 		}
 	}
 
 	// 4. 更新证书到域名
-	_, err = icdnClient.PostUpdateDomainInfo(domain, note)
+	_, err = icdnClient.PostUpdateDomainInfo(domain, certBundle.GetNote())
 	if err != nil {
 		return nil, fmt.Errorf("更新证书到域名失败: %w", err)
 	}
@@ -221,18 +207,11 @@ func deployAccessoneAction(cfg map[string]any) (*Response, error) {
 		return nil, fmt.Errorf("domain is required and must be a string")
 	}
 
-	// 1. 解析证书字符串
+	// 解析证书字符串
 	certBundle, err := core.ParseCertBundle([]byte(certStr), []byte(keyStr))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse cert bundle: %w", err)
 	}
-
-	// 2. 计算证书字符串的SHA256值
-	sha256, err := core.GetSHA256(certBundle.Certificate)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get SHA256 of cert: %w", err)
-	}
-	note := fmt.Sprintf("allinssl-%s", sha256)
 
 	// 创建边缘安全加速平台客户端
 	accessoneClient, err := accessone.NewClient(accessKey, secretKey)
@@ -250,7 +229,7 @@ func deployAccessoneAction(cfg map[string]any) (*Response, error) {
 	}
 
 	// 2. 检查域名是否配置了现存证书
-	if queryDomainInfo.ReturnObj.CertName == note {
+	if queryDomainInfo.ReturnObj.CertName == certBundle.GetNote() {
 		return &Response{
 			Status:  "success",
 			Message: "证书已绑定域名",
@@ -262,16 +241,16 @@ func deployAccessoneAction(cfg map[string]any) (*Response, error) {
 	}
 
 	// 3. 查询证书是否已存，不存在就上传证书
-	queryCertInfo, _ := accessoneClient.GetQueryCertInfo(note)
-	if queryCertInfo.ReturnObj.Name != note {
-		_, err = accessoneClient.PostUpdateCertInfo(note, certBundle.PrivateKey, certBundle.Certificate)
+	queryCertInfo, _ := accessoneClient.GetQueryCertInfo(certBundle.GetNote())
+	if queryCertInfo.ReturnObj.Name != certBundle.GetNote() {
+		_, err = accessoneClient.PostUpdateCertInfo(certBundle.GetNote(), certBundle.PrivateKey, certBundle.Certificate)
 		if err != nil {
 			return nil, fmt.Errorf("上传证书失败: %w", err)
 		}
 	}
 
 	// 4. 更新证书到域名
-	_, err = accessoneClient.PostUpdateDomainInfo(domain, note)
+	_, err = accessoneClient.PostUpdateDomainInfo(domain, certBundle.GetNote())
 	if err != nil {
 		return nil, fmt.Errorf("更新证书到域名失败: %w", err)
 	}
@@ -318,16 +297,6 @@ func deployCcmsAction(cfg map[string]any) (*Response, error) {
 		return nil, fmt.Errorf("failed to parse cert bundle: %w", err)
 	}
 
-	// 2. 计算证书字符串的SHA256值
-	sha256, err := core.GetSHA256(certBundle.Certificate)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get SHA256 of cert: %w", err)
-	}
-
-	// 3. 取SHA256的前6位作为唯一标识
-	sha256Short := sha256[:6]
-	note := fmt.Sprintf("allinssl-%s", sha256Short)
-
 	// 创建证书管理服务客户端
 	ccmsClient, err := ccms.NewClient(accessKey, secretKey)
 	if err != nil {
@@ -340,7 +309,7 @@ func deployCcmsAction(cfg map[string]any) (*Response, error) {
 		return nil, fmt.Errorf("查询证书是否存在错误: %w", err)
 	}
 	for _, certificate := range queryCertList.ReturnObj.List {
-		if certificate.Name == note {
+		if certificate.Name == certBundle.GetNoteShort() {
 			return &Response{
 				Status:  "success",
 				Message: "证书已存在",
@@ -352,7 +321,7 @@ func deployCcmsAction(cfg map[string]any) (*Response, error) {
 	}
 
 	// 2. 上传证书
-	_, err = ccmsClient.PostUpdateCertInfo(note, certBundle.Certificate, certBundle.PrivateKey)
+	_, err = ccmsClient.PostUpdateCertInfo(certBundle.GetNoteShort(), certBundle.Certificate, certBundle.PrivateKey)
 	if err != nil {
 		return nil, fmt.Errorf("上传证书错误: %w", err)
 	}

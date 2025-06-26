@@ -1,7 +1,10 @@
 package core
 
 import (
+	"crypto/sha1"
+	"crypto/sha256"
 	"crypto/x509"
+	"encoding/hex"
 	"encoding/pem"
 	"fmt"
 	"time"
@@ -14,6 +17,8 @@ type CertBundle struct {
 	CertificateChain string `json:"-"` // 证书链字符串
 
 	SerialNumber       string    `json:"serialNumber"`       // 证书序列号
+	FingerprintSHA1    string    `json:"fingerprintSHA1"`    // 证书SHA1指纹
+	FingerprintSHA256  string    `json:"fingerprintSHA256"`  // 证书SHA256指纹
 	NotBefore          time.Time `json:"notBefore"`          // 证书生效时间
 	NotAfter           time.Time `json:"notAfter"`           // 证书过期时间
 	Subject            string    `json:"subject"`            // 证书主题
@@ -35,6 +40,14 @@ func ParseCertBundle(certPEMData, keyPEMData []byte) (*CertBundle, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// 计算证书SHA1指纹
+	sha1Hash := sha1.Sum(cert.Raw)                     // cert.Raw 包含证书的 DER 编码字节
+	fingerprintSHA1 := hex.EncodeToString(sha1Hash[:]) // 转换为十六进制字符串
+
+	// 计算证书SHA256指纹
+	sha256Hash := sha256.Sum256(cert.Raw)                  // 使用 sha256.Sum256
+	fingerprintSHA256 := hex.EncodeToString(sha256Hash[:]) // 转换为十六进制字符串
 
 	// 提取主证书字符串（第一个证书）
 	mainCertPEM := string(pem.EncodeToMemory(block))
@@ -60,6 +73,8 @@ func ParseCertBundle(certPEMData, keyPEMData []byte) (*CertBundle, error) {
 		PrivateKey:         string(keyPEMData),
 		CertificateChain:   chainPEM,
 		SerialNumber:       cert.SerialNumber.String(),
+		FingerprintSHA1:    fingerprintSHA1,
+		FingerprintSHA256:  fingerprintSHA256,
 		NotBefore:          cert.NotBefore,
 		NotAfter:           cert.NotAfter,
 		Subject:            cert.Subject.String(),
@@ -69,4 +84,16 @@ func ParseCertBundle(certPEMData, keyPEMData []byte) (*CertBundle, error) {
 		IPAddresses:        ipStrings,
 		SignatureAlgorithm: cert.SignatureAlgorithm.String(),
 	}, nil
+}
+
+const notePrefix = "allinssl-"
+
+// 获取证书名字
+func (cb *CertBundle) GetNote() string {
+	return fmt.Sprintf("allinssl-%s", cb.FingerprintSHA256)
+}
+
+// 获取证书名字（缩短的，天翼云证书管理在使用）
+func (cb *CertBundle) GetNoteShort() string {
+	return fmt.Sprintf("allinssl-%s", cb.FingerprintSHA256[:6])
 }

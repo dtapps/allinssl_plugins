@@ -41,25 +41,18 @@ func deployProxyHostsAction(cfg map[string]any) (*Response, error) {
 		return nil, fmt.Errorf("domain is required and must be a string")
 	}
 
-	// 1. 解析证书字符串
+	// 解析证书字符串
 	certBundle, err := core.ParseCertBundle([]byte(certStr), []byte(keyStr))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse cert bundle: %w", err)
 	}
-
-	// 2. 计算证书字符串的SHA256值
-	sha256, err := core.GetSHA256(certBundle.Certificate)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get SHA256 of cert: %w", err)
-	}
-	note := fmt.Sprintf("allinssl-%s", sha256)
 
 	// 创建请求客户端
 	openapiClient, err := openapi.NewClient(baseURL, email, password)
 	if err != nil {
 		return nil, fmt.Errorf("创建请求客户端错误: %w", err)
 	}
-	openapiClient.WithDebug()
+	// openapiClient.WithDebug()
 
 	// 1. 先登录获取令牌
 	openapiClient, err = openapiClient.WithLogin()
@@ -71,13 +64,13 @@ func deployProxyHostsAction(cfg map[string]any) (*Response, error) {
 	openapiClient.WithToken()
 
 	// 3. 上传证书
-	certID, err := certificate.Action(openapiClient, note, certBundle)
+	certID, err := certificate.Action(openapiClient, certBundle)
 	if err != nil {
 		return nil, err
 	}
 
 	// 4. 域名绑定证书
-	_, err = proxy_host.Action(openapiClient, domain, note, certID)
+	_, err = proxy_host.Action(openapiClient, domain, certID, certBundle)
 	if err != nil {
 		return nil, err
 	}
@@ -120,22 +113,11 @@ func deployCertificatesAction(cfg map[string]any) (*Response, error) {
 		return nil, fmt.Errorf("password is required and must be a string")
 	}
 
-	// 1. 解析证书字符串
+	// 解析证书字符串
 	certBundle, err := core.ParseCertBundle([]byte(certStr), []byte(keyStr))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse cert bundle: %w", err)
 	}
-
-	// 2. 计算证书字符串的SHA256值
-	sha256, err := core.GetSHA256(certBundle.Certificate)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get SHA256 of cert: %w", err)
-	}
-	note := fmt.Sprintf("allinssl-%s", sha256)
-
-	// 3. 取SHA256的前6位作为唯一标识
-	// sha256Short := sha256[:6]
-	// note := fmt.Sprintf("allinssl-%s", sha256Short)
 
 	// 创建请求客户端
 	openapiClient, err := openapi.NewClient(baseURL, email, password)
@@ -154,7 +136,7 @@ func deployCertificatesAction(cfg map[string]any) (*Response, error) {
 	openapiClient.WithToken()
 
 	// 3. 上传证书
-	_, err = certificate.Action(openapiClient, note, certBundle)
+	_, err = certificate.Action(openapiClient, certBundle)
 	if err != nil {
 		return nil, err
 	}

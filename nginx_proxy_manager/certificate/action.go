@@ -9,9 +9,8 @@ import (
 )
 
 // 上传证书
-// note: 证书备注名
 // certID: 证书ID
-func Action(openapiClient *openapi.Client, note string, certBundle *core.CertBundle) (certID int, err error) {
+func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (certID int, err error) {
 
 	// 1. 获取证书列表
 	var certListResp []struct {
@@ -31,7 +30,7 @@ func Action(openapiClient *openapi.Client, note string, certBundle *core.CertBun
 		return
 	}
 	for _, cert := range certListResp {
-		if cert.NiceName == note {
+		if cert.NiceName == certBundle.GetNote() {
 			if cert.Meta.Certificate != "" && cert.Meta.CertificateKey != "" {
 				// 证书已存在
 				return cert.ID, nil
@@ -50,7 +49,7 @@ func Action(openapiClient *openapi.Client, note string, certBundle *core.CertBun
 			SetContentType("application/json").
 			SetBody(map[string]string{
 				"provider":  "other",
-				"nice_name": note,
+				"nice_name": certBundle.GetNote(),
 			}).
 			SetResult(&certCreateResp).
 			Post("/nginx/certificates")

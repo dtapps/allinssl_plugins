@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/dtapps/allinssl_plugins/nginx_proxy_manager/core"
 	"github.com/dtapps/allinssl_plugins/nginx_proxy_manager/openapi"
 )
 
@@ -11,7 +12,7 @@ import (
 // domain: 域名
 // note: 证书备注名
 // hostID: 域名ID
-func Action(openapiClient *openapi.Client, domain string, note string, certID int) (hostID int, err error) {
+func Action(openapiClient *openapi.Client, domain string, certID int, certBundle *core.CertBundle) (hostID int, err error) {
 
 	// 1. 获取域名列表
 	var proxyHostsListResp []struct {
@@ -32,7 +33,7 @@ func Action(openapiClient *openapi.Client, domain string, note string, certID in
 	}
 	for _, item := range proxyHostsListResp {
 		if strings.Contains(strings.Join(item.DomainNames, ","), domain) {
-			if item.Certificate.Nickname == note {
+			if item.Certificate.Nickname == certBundle.GetNote() {
 				// 证书已绑定域名
 				return item.ID, nil
 			} else {
