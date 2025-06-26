@@ -12,6 +12,7 @@ on:
           - ctyun
           - nginx_proxy_manager
           - proxmox
+          - synology
       arch: # 架构选择输入
         description: '选择架构'
         required: true

@@ -64,13 +64,9 @@ func (c *Client) WithLogin() (*Client, error) {
 	if c.token != "" && c.tokenExp.After(time.Now()) {
 		return c, nil
 	}
-	var tokensResp struct {
+	var loginResp struct {
 		Token   string `json:"token"`
 		Expires string `json:"expires"`
-	}
-	type tokensReq struct {
-		Identity string `json:"identity"`
-		Secret   string `json:"secret"`
 	}
 	_, err := c.R().
 		SetContentType("application/json").
@@ -78,20 +74,20 @@ func (c *Client) WithLogin() (*Client, error) {
 			"identity": c.email,
 			"secret":   c.password,
 		}).
-		SetResult(&tokensResp).
+		SetResult(&loginResp).
 		Post("/tokens")
 	if err != nil {
 		return nil, fmt.Errorf("login failed: %v", err)
 	}
 
 	// 检查令牌是否为空
-	if tokensResp.Token == "" {
+	if loginResp.Token == "" {
 		return nil, fmt.Errorf("token is empty")
 	}
-	c.token = tokensResp.Token
+	c.token = loginResp.Token
 
 	// 解析过期时间
-	expires, err := time.Parse(time.RFC3339, tokensResp.Expires)
+	expires, err := time.Parse(time.RFC3339, loginResp.Expires)
 	if err != nil {
 		return nil, fmt.Errorf("parse expires: %v", err)
 	}

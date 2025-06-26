@@ -13,11 +13,12 @@ AllinSSL 第三方插件库
 | Nginx Proxy Manager | Proxy Hosts | nginx_proxy_manager/proxy_host |
 | Nginx Proxy Manager | SSL Certificates | nginx_proxy_manager/certificate |
 | Proxmox VE | 凭证 | proxmox/certificate |
+| Synology | 证书 | synology/certificate |
 
 ## 天翼云 使用示例
 
 1. 将模块文件放入 AllinSSL 插件目录(plugins)
-2. 在AllinSSL后台「添加授权API」选择 ctyun 插件
+2. 在 AllinSSL 后台「添加授权API」选择 ctyun 插件
 3. 配置参数（JSON格式）：
 ```json
    {
@@ -43,7 +44,7 @@ AllinSSL 第三方插件库
 ## Proxmox VE 使用示例
 
 1. 将模块文件放入 AllinSSL 插件目录(plugins)
-2. 在AllinSSL后台「添加授权API」选择 proxmox 插件
+2. 在 AllinSSL 后台「添加授权API」选择 proxmox 插件
 3. 配置参数（JSON格式）：
 ```json
    {
@@ -52,5 +53,19 @@ AllinSSL 第三方插件库
      "user": "您的用户名和领域",
      "token_id": "您的令牌ID",
      "token_secret": "您的令牌密钥"
+   }
+```
+
+
+## Synology 使用示例
+
+1. 将模块文件放入 AllinSSL 插件目录(plugins)
+2. 在 AllinSSL 后台「添加授权API」选择 synology 插件
+3. 配置参数（JSON格式）：
+```json
+   {
+     "url": "您的网站，包含协议和端口",
+     "username": "您的用户名",
+     "password": "您的密码"
    }
 ```
