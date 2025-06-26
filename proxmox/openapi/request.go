@@ -13,6 +13,7 @@ type Client struct {
 }
 
 // NewClient 创建请求客户端
+// https://pve.proxmox.com/pve-docs/api-viewer/
 func NewClient(pveURL, pveUser, pveTokenID, pveTokenSecret string) (*Client, error) {
 	if pveURL == "" {
 		return nil, fmt.Errorf("check baseURL")

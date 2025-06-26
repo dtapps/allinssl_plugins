@@ -6,6 +6,7 @@ import (
 
 	"github.com/dtapps/allinssl_plugins/nginx_proxy_manager/core"
 	"github.com/dtapps/allinssl_plugins/nginx_proxy_manager/openapi"
+	"github.com/dtapps/allinssl_plugins/nginx_proxy_manager/types"
 )
 
 // 域名绑定证书
@@ -15,14 +16,7 @@ import (
 func Action(openapiClient *openapi.Client, domain string, certID int, certBundle *core.CertBundle) (hostID int, err error) {
 
 	// 1. 获取域名列表
-	var proxyHostsListResp []struct {
-		ID          int      `json:"id"`           // 域名ID
-		DomainNames []string `json:"domain_names"` // 域名列表
-		Certificate struct {
-			ID       int    `json:"id"`        // 证书ID
-			Nickname string `json:"nice_name"` // 证书名称
-		} `json:"certificate,omitempty"`
-	}
+	var proxyHostsListResp []types.ProxyHostListResponse
 	_, err = openapiClient.R().
 		SetContentType("application/json").
 		SetResult(&proxyHostsListResp).

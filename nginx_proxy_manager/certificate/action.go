@@ -6,21 +6,16 @@ import (
 
 	"github.com/dtapps/allinssl_plugins/nginx_proxy_manager/core"
 	"github.com/dtapps/allinssl_plugins/nginx_proxy_manager/openapi"
+	"github.com/dtapps/allinssl_plugins/nginx_proxy_manager/types"
 )
 
 // 上传证书
 // certID: 证书ID
-func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (certID int, err error) {
+// isExist: 是否存在
+func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (certID int, isExist bool, err error) {
 
 	// 1. 获取证书列表
-	var certListResp []struct {
-		ID       int    `json:"id"`        // 证书ID
-		NiceName string `json:"nice_name"` // 证书名称
-		Meta     struct {
-			Certificate    string `json:"certificate"`
-			CertificateKey string `json:"certificate_key"`
-		} `json:"meta,omitempty"`
-	}
+	var certListResp []types.CertificateListResponse
 	_, err = openapiClient.R().
 		SetContentType("application/json").
 		SetResult(&certListResp).
@@ -33,7 +28,7 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (certID 
 		if cert.NiceName == certBundle.GetNote() {
 			if cert.Meta.Certificate != "" && cert.Meta.CertificateKey != "" {
 				// 证书已存在
-				return cert.ID, nil
+				return cert.ID, true, nil
 			} else {
 				certID = cert.ID
 			}
@@ -42,9 +37,7 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (certID 
 
 	// 2. 创建证书
 	if certID == 0 {
-		var certCreateResp struct {
-			ID int `json:"id"` // 唯一标识符
-		}
+		var certCreateResp types.CertificateCreateResponse
 		_, err = openapiClient.R().
 			SetContentType("application/json").
 			SetBody(map[string]string{
@@ -70,5 +63,5 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (certID 
 		return
 	}
 
-	return certID, nil
+	return certID, false, nil
 }

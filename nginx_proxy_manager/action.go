@@ -64,7 +64,7 @@ func deployProxyHostsAction(cfg map[string]any) (*Response, error) {
 	openapiClient.WithToken()
 
 	// 3. 上传证书
-	certID, err := certificate.Action(openapiClient, certBundle)
+	certID, _, err := certificate.Action(openapiClient, certBundle)
 	if err != nil {
 		return nil, err
 	}
@@ -136,9 +136,18 @@ func deployCertificatesAction(cfg map[string]any) (*Response, error) {
 	openapiClient.WithToken()
 
 	// 3. 上传证书
-	_, err = certificate.Action(openapiClient, certBundle)
+	_, isExist, err := certificate.Action(openapiClient, certBundle)
 	if err != nil {
 		return nil, err
+	}
+	if isExist {
+		return &Response{
+			Status:  "success",
+			Message: "证书已存在",
+			Result: map[string]any{
+				"cert": certBundle,
+			},
+		}, nil
 	}
 
 	return &Response{

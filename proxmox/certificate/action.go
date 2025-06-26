@@ -6,18 +6,16 @@ import (
 
 	"github.com/dtapps/allinssl_plugins/proxmox/core"
 	"github.com/dtapps/allinssl_plugins/proxmox/openapi"
+	"github.com/dtapps/allinssl_plugins/proxmox/types"
 )
 
 // 上传证书
 // pveNode: 证书备注名
-func Action(openapiClient *openapi.Client, pveNode string, certBundle *core.CertBundle) (err error) {
+// isExist: 是否存在
+func Action(openapiClient *openapi.Client, pveNode string, certBundle *core.CertBundle) (isExist bool, err error) {
 
 	// 1. 获取证书列表
-	var certListResp struct {
-		Data []struct {
-			Fingerprint string `json:"fingerprint"` // 当前证书的指纹
-		} `json:"data"`
-	}
+	var certListResp types.CertificateListResponse
 	_, err = openapiClient.R().
 		SetContentType("application/json").
 		SetResult(&certListResp).
@@ -26,15 +24,15 @@ func Action(openapiClient *openapi.Client, pveNode string, certBundle *core.Cert
 		err = fmt.Errorf("获取证书列表错误: %w", err)
 		return
 	}
-	fmt.Println("数据", certListResp)
 	for _, certInfo := range certListResp.Data {
-		if strings.EqualFold(strings.ReplaceAll(certInfo.Fingerprint, ":", ""), certBundle.FingerprintSHA1) {
+		apiFingerprint := strings.ReplaceAll(certInfo.Fingerprint, ":", "")
+		if strings.EqualFold(apiFingerprint, certBundle.FingerprintSHA1) {
 			// 证书已存在
-			return nil
+			return true, nil
 		}
-		if strings.EqualFold(strings.ReplaceAll(certInfo.Fingerprint, ":", ""), certBundle.FingerprintSHA256) {
+		if strings.EqualFold(apiFingerprint, certBundle.FingerprintSHA256) {
 			// 证书已存在
-			return nil
+			return true, nil
 		}
 	}
 
@@ -51,5 +49,5 @@ func Action(openapiClient *openapi.Client, pveNode string, certBundle *core.Cert
 		return
 	}
 
-	return nil
+	return false, nil
 }

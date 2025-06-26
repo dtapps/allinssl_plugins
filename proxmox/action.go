@@ -59,9 +59,18 @@ func deployCertificatesAction(cfg map[string]any) (*Response, error) {
 	openapiClient.WithSkipVerify()
 
 	// 上传证书
-	err = certificate.Action(openapiClient, pveNode, certBundle)
+	isExist, err := certificate.Action(openapiClient, pveNode, certBundle)
 	if err != nil {
 		return nil, err
+	}
+	if isExist {
+		return &Response{
+			Status:  "success",
+			Message: "证书已存在",
+			Result: map[string]any{
+				"cert": certBundle,
+			},
+		}, nil
 	}
 
 	return &Response{

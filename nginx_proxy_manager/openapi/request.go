@@ -17,6 +17,7 @@ type Client struct {
 }
 
 // NewClient 创建请求客户端
+// http://xxxx:xx/api/schema
 func NewClient(baseURL string, email string, password string) (*Client, error) {
 	if baseURL == "" {
 		return nil, fmt.Errorf("check baseURL")
