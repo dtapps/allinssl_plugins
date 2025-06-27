@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
+	"github.com/dtapps/allinssl_plugins/core"
 	"github.com/dtapps/allinssl_plugins/nginx_proxy_manager/certificate"
-	"github.com/dtapps/allinssl_plugins/nginx_proxy_manager/core"
 	"github.com/dtapps/allinssl_plugins/nginx_proxy_manager/openapi"
 	"github.com/dtapps/allinssl_plugins/nginx_proxy_manager/proxy_host"
 )

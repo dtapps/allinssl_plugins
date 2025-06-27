@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 
+	"github.com/dtapps/allinssl_plugins/core"
 	"github.com/dtapps/allinssl_plugins/ctyun/accessone"
 	"github.com/dtapps/allinssl_plugins/ctyun/ccms"
 	"github.com/dtapps/allinssl_plugins/ctyun/cdn"
-	"github.com/dtapps/allinssl_plugins/ctyun/core"
 	"github.com/dtapps/allinssl_plugins/ctyun/icdn"
 )
 

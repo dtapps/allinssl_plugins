@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
+	"github.com/dtapps/allinssl_plugins/core"
 	"github.com/dtapps/allinssl_plugins/proxmox/certificate"
-	"github.com/dtapps/allinssl_plugins/proxmox/core"
 	"github.com/dtapps/allinssl_plugins/proxmox/openapi"
 )
 

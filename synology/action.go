@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
+	"github.com/dtapps/allinssl_plugins/core"
 	"github.com/dtapps/allinssl_plugins/synology/certificate"
-	"github.com/dtapps/allinssl_plugins/synology/core"
 	"github.com/dtapps/allinssl_plugins/synology/openapi"
 )
 

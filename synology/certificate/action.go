@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dtapps/allinssl_plugins/synology/core"
+	"github.com/dtapps/allinssl_plugins/core"
 	"github.com/dtapps/allinssl_plugins/synology/openapi"
 	"github.com/dtapps/allinssl_plugins/synology/types"
 )

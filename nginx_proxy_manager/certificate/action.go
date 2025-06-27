@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dtapps/allinssl_plugins/nginx_proxy_manager/core"
+	"github.com/dtapps/allinssl_plugins/core"
 	"github.com/dtapps/allinssl_plugins/nginx_proxy_manager/openapi"
 	"github.com/dtapps/allinssl_plugins/nginx_proxy_manager/types"
 )

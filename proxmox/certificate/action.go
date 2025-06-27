@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dtapps/allinssl_plugins/proxmox/core"
+	"github.com/dtapps/allinssl_plugins/core"
 	"github.com/dtapps/allinssl_plugins/proxmox/openapi"
 	"github.com/dtapps/allinssl_plugins/proxmox/types"
 )

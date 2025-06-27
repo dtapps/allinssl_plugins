@@ -17,15 +17,15 @@ type CertBundle struct {
 	CertificateChain string `json:"-"` // 证书链字符串
 
 	SerialNumber       string    `json:"serialNumber"`       // 证书序列号
-	FingerprintSHA1    string    `json:"fingerprintSHA1"`    // 证书SHA1指纹
-	FingerprintSHA256  string    `json:"fingerprintSHA256"`  // 证书SHA256指纹
+	FingerprintSHA1    string    `json:"-"`                  // 证书SHA1指纹
+	FingerprintSHA256  string    `json:"-"`                  // 证书SHA256指纹
 	NotBefore          time.Time `json:"notBefore"`          // 证书生效时间
 	NotAfter           time.Time `json:"notAfter"`           // 证书过期时间
 	Subject            string    `json:"subject"`            // 证书主题
 	Issuer             string    `json:"issuer"`             // 颁发者
 	DNSNames           []string  `json:"dnsNames"`           // 域名列表
-	EmailAddresses     []string  `json:"emailAddresses"`     // 邮箱地址
-	IPAddresses        []string  `json:"ipAddresses"`        // IP地址
+	EmailAddresses     []string  `json:"-"`                  // 邮箱地址
+	IPAddresses        []string  `json:"-"`                  // IP地址
 	SignatureAlgorithm string    `json:"signatureAlgorithm"` // 签名算法
 }
 
