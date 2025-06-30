@@ -32,9 +32,10 @@ func Action(openapiClient *openapi.Client, domain string, certID int, certBundle
 			} else {
 				hostID = item.ID
 			}
-		} else {
-			return 0, fmt.Errorf("域名 %s 不存在", domain)
 		}
+	}
+	if hostID == 0 {
+		return 0, fmt.Errorf("域名 %s 不存在", domain)
 	}
 
 	// 2. 绑定证书
