@@ -3,6 +3,7 @@ package certificate
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/dtapps/allinssl_plugins/core"
 	"github.com/dtapps/allinssl_plugins/synology/openapi"
@@ -22,17 +23,34 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (isExist
 		SetResult(&certListResp).
 		Get("")
 	if err != nil {
-		err = fmt.Errorf("获取证书列表错误: %w", err)
-		return
+		return false, fmt.Errorf("获取证书列表错误: %w", err)
 	}
+	// 检查证书列表响应
+	if !certListResp.Success {
+		return false, fmt.Errorf("获取证书列表失败")
+	}
+	const customLayout = "Jan 02 15:04:05 2006 MST"
 	for _, certInfo := range certListResp.Data.Certificates {
 		if strings.EqualFold(certInfo.Desc, certBundle.GetNote()) {
-			// 证书已存在
-			return true, nil
+			if len(certInfo.Subject.SubAltName) > 0 && len(certBundle.DNSNames) > 0 && core.EqualStringSlices(certInfo.Subject.SubAltName, certBundle.DNSNames) {
+				var validTill time.Time
+				validTill, err = time.Parse(customLayout, certInfo.ValidTill)
+				if err != nil {
+					return false, fmt.Errorf("解析过期时间失败: %w", err)
+				}
+				if validTill.After(time.Now()) {
+					// 证书已存在且未过期
+					return true, nil
+				}
+			} else {
+				// 证书已存在
+				return true, nil
+			}
 		}
 	}
 
 	// 2. 上传证书
+	var certUpdateResp types.CommonResponse
 	_, err = openapiClient.R().
 		SetQueryParam("api", "SYNO.Core.Certificate").
 		SetQueryParam("version", "1").
@@ -42,10 +60,14 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (isExist
 		}).
 		SetFileReader("cert", "certificate.pem", strings.NewReader(certBundle.Certificate)).
 		SetFileReader("key", "private_key.pem", strings.NewReader(certBundle.PrivateKey)).
+		SetResult(&certUpdateResp).
 		Post("")
 	if err != nil {
-		err = fmt.Errorf("上传证书错误: %w", err)
-		return
+		return false, fmt.Errorf("上传证书错误: %w", err)
+	}
+	// 检查证书上传响应
+	if !certUpdateResp.Success {
+		return false, fmt.Errorf("上传证书失败")
 	}
 
 	return false, nil

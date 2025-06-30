@@ -27,10 +27,10 @@ type Response struct {
 var pluginMeta = map[string]any{
 	"name":        "synology",
 	"description": "部署到Synology",
-	"version":     "1.0.0",
+	"version":     "1.0.1",
 	"author":      "dtapps",
 	"config": map[string]any{
-		"url":      "Synology 主机IP或域名，包含协议和端口，例如：https://xxxx:5001",
+		"url":      "Synology 主机IP或域名，包含协议和端口，例如：https://example.com 或 https://0.0.0.0:5001",
 		"username": "Synology 用户名",
 		"password": "Synology 密码",
 	},

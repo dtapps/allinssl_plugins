@@ -27,10 +27,10 @@ type Response struct {
 var pluginMeta = map[string]any{
 	"name":        "proxmox",
 	"description": "部署到Proxmox VE",
-	"version":     "1.0.1",
+	"version":     "1.0.2",
 	"author":      "dtapps",
 	"config": map[string]any{
-		"url":          "Proxmox VE 主机IP或域名，包含协议和端口，例如：https://xxxx:8006",
+		"url":          "Proxmox VE 主机IP或域名，包含协议和端口，例如：https://example.com 或 https://0.0.0.0:8006",
 		"node":         "Proxmox VE 节点名称，例如：pve",
 		"user":         "Proxmox VE 用户名和领域，例如：root@pam",
 		"token_id":     "Proxmox VE 令牌 ID",

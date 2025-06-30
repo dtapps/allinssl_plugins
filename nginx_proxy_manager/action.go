@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/dtapps/allinssl_plugins/core"
 	"github.com/dtapps/allinssl_plugins/nginx_proxy_manager/certificate"
@@ -24,20 +25,20 @@ func deployProxyHostsAction(cfg map[string]any) (*Response, error) {
 		return nil, fmt.Errorf("key is required and must be a string")
 	}
 
-	baseURL, ok := cfg["url"].(string)
-	if !ok || baseURL == "" {
+	npmURL, ok := cfg["url"].(string)
+	if !ok || npmURL == "" {
 		return nil, fmt.Errorf("url is required and must be a string")
 	}
-	email, ok := cfg["email"].(string)
-	if !ok || email == "" {
+	npmEmail, ok := cfg["email"].(string)
+	if !ok || npmEmail == "" {
 		return nil, fmt.Errorf("email is required and must be a string")
 	}
-	password, ok := cfg["password"].(string)
-	if !ok || password == "" {
+	npmPassword, ok := cfg["password"].(string)
+	if !ok || npmPassword == "" {
 		return nil, fmt.Errorf("password is required and must be a string")
 	}
-	domain, ok := cfg["domain"].(string)
-	if !ok || domain == "" {
+	npmDomain, ok := cfg["domain"].(string)
+	if !ok || npmDomain == "" {
 		return nil, fmt.Errorf("domain is required and must be a string")
 	}
 
@@ -47,8 +48,21 @@ func deployProxyHostsAction(cfg map[string]any) (*Response, error) {
 		return nil, fmt.Errorf("failed to parse cert bundle: %w", err)
 	}
 
+	// 1. 检查证书是否过期
+	if certBundle.IsExpired() {
+		return nil, fmt.Errorf("证书已过期 %s", certBundle.NotAfter.Format(time.DateTime))
+	}
+
+	// 解析传入域名
+	userDomains, isMultiple := core.ParseDomainsFixedSeparator(npmDomain, ",")
+	if isMultiple {
+		if !certBundle.CanDomainsUseCert(userDomains) {
+			return nil, fmt.Errorf("域名和证书不匹配，证书支持域名：%v，传入域名：%v", certBundle.DNSNames, userDomains)
+		}
+	}
+
 	// 创建请求客户端
-	openapiClient, err := openapi.NewClient(baseURL, email, password)
+	openapiClient, err := openapi.NewClient(npmURL, npmEmail, npmPassword)
 	if err != nil {
 		return nil, fmt.Errorf("创建请求客户端错误: %w", err)
 	}
@@ -70,16 +84,18 @@ func deployProxyHostsAction(cfg map[string]any) (*Response, error) {
 	}
 
 	// 4. 域名绑定证书
-	_, err = proxy_host.Action(openapiClient, domain, certID, certBundle)
-	if err != nil {
-		return nil, err
+	for _, domain := range userDomains {
+		_, err = proxy_host.Action(openapiClient, domain, certID, certBundle)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &Response{
 		Status:  "success",
 		Message: "更新域名证书成功",
 		Result: map[string]any{
-			"domain": domain,
+			"domain": npmDomain,
 			"cert":   certBundle,
 		},
 	}, nil
@@ -100,16 +116,16 @@ func deployCertificatesAction(cfg map[string]any) (*Response, error) {
 		return nil, fmt.Errorf("key is required and must be a string")
 	}
 
-	baseURL, ok := cfg["url"].(string)
-	if !ok || baseURL == "" {
+	npmURL, ok := cfg["url"].(string)
+	if !ok || npmURL == "" {
 		return nil, fmt.Errorf("url is required and must be a string")
 	}
-	email, ok := cfg["email"].(string)
-	if !ok || email == "" {
+	npmEmail, ok := cfg["email"].(string)
+	if !ok || npmEmail == "" {
 		return nil, fmt.Errorf("email is required and must be a string")
 	}
-	password, ok := cfg["password"].(string)
-	if !ok || password == "" {
+	npmPassword, ok := cfg["password"].(string)
+	if !ok || npmPassword == "" {
 		return nil, fmt.Errorf("password is required and must be a string")
 	}
 
@@ -119,8 +135,13 @@ func deployCertificatesAction(cfg map[string]any) (*Response, error) {
 		return nil, fmt.Errorf("failed to parse cert bundle: %w", err)
 	}
 
+	// 1. 检查证书是否过期
+	if certBundle.IsExpired() {
+		return nil, fmt.Errorf("证书已过期 %s", certBundle.NotAfter.Format(time.DateTime))
+	}
+
 	// 创建请求客户端
-	openapiClient, err := openapi.NewClient(baseURL, email, password)
+	openapiClient, err := openapi.NewClient(npmURL, npmEmail, npmPassword)
 	if err != nil {
 		return nil, fmt.Errorf("创建请求客户端错误: %w", err)
 	}

@@ -27,9 +27,3 @@ func ensureAPIPath(baseURL string) (string, error) {
 
 	return u.String(), nil
 }
-
-// WithDebug 设置令牌
-func (c *Client) WithToken() *Client {
-	c.SetHeader("X-SYNO-TOKEN", c.token)
-	return c
-}

@@ -3,6 +3,7 @@ package certificate
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/dtapps/allinssl_plugins/core"
 	"github.com/dtapps/allinssl_plugins/nginx_proxy_manager/openapi"
@@ -21,16 +22,26 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (certID 
 		SetResult(&certListResp).
 		Get("/nginx/certificates")
 	if err != nil {
-		err = fmt.Errorf("获取证书列表错误: %w", err)
-		return
+		return 0, false, fmt.Errorf("获取证书列表错误: %w", err)
 	}
-	for _, cert := range certListResp {
-		if cert.NiceName == certBundle.GetNote() {
-			if cert.Meta.Certificate != "" && cert.Meta.CertificateKey != "" {
-				// 证书已存在
-				return cert.ID, true, nil
-			} else {
-				certID = cert.ID
+	for _, certInfo := range certListResp {
+		certID = certInfo.ID
+		if strings.EqualFold(certInfo.NiceName, certBundle.GetNote()) {
+			if certInfo.Meta.Certificate != "" && certInfo.Meta.CertificateKey != "" {
+				if len(certInfo.DomainNames) > 0 && len(certBundle.DNSNames) > 0 && core.EqualStringSlices(certInfo.DomainNames, certBundle.DNSNames) {
+					var expiresOn time.Time
+					expiresOn, err = time.Parse(time.DateTime, certInfo.ExpiresOn)
+					if err != nil {
+						return 0, false, fmt.Errorf("解析过期时间失败: %w", err)
+					}
+					if expiresOn.After(time.Now()) {
+						// 证书已存在且未过期
+						return certInfo.ID, true, nil
+					}
+				} else {
+					// 证书已存在
+					return certInfo.ID, true, nil
+				}
 			}
 		}
 	}
@@ -47,8 +58,7 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (certID 
 			SetResult(&certCreateResp).
 			Post("/nginx/certificates")
 		if err != nil {
-			err = fmt.Errorf("创建证书错误: %w", err)
-			return
+			return 0, false, fmt.Errorf("创建证书错误: %w", err)
 		}
 		certID = certCreateResp.ID
 	}
@@ -57,7 +67,7 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (certID 
 	_, err = openapiClient.R().
 		SetFileReader("certificate", "certificate.pem", strings.NewReader(certBundle.Certificate)).
 		SetFileReader("certificate_key", "private_key.pem", strings.NewReader(certBundle.PrivateKey)).
-		Post(fmt.Sprintf("/nginx/certificates/%v/upload", certID))
+		Post(fmt.Sprintf("/nginx/certificates/%d/upload", certID))
 	if err != nil {
 		err = fmt.Errorf("上传证书错误: %w", err)
 		return

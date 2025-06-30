@@ -3,6 +3,7 @@ package certificate
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/dtapps/allinssl_plugins/core"
 	"github.com/dtapps/allinssl_plugins/proxmox/openapi"
@@ -21,18 +22,21 @@ func Action(openapiClient *openapi.Client, pveNode string, certBundle *core.Cert
 		SetResult(&certListResp).
 		Get(fmt.Sprintf("/api2/json/nodes/%s/certificates/info", pveNode))
 	if err != nil {
-		err = fmt.Errorf("获取证书列表错误: %w", err)
-		return
+		return false, fmt.Errorf("获取证书列表错误: %w", err)
 	}
 	for _, certInfo := range certListResp.Data {
 		apiFingerprint := strings.ReplaceAll(certInfo.Fingerprint, ":", "")
-		if strings.EqualFold(apiFingerprint, certBundle.FingerprintSHA1) {
-			// 证书已存在
-			return true, nil
-		}
-		if strings.EqualFold(apiFingerprint, certBundle.FingerprintSHA256) {
-			// 证书已存在
-			return true, nil
+		if strings.EqualFold(apiFingerprint, certBundle.GetFingerprintSHA256()) {
+			if len(certInfo.San) > 0 && len(certBundle.DNSNames) > 0 && core.EqualStringSlices(certInfo.San, certBundle.DNSNames) {
+				notAfter := time.Unix(certInfo.NotAfter, 0)
+				if notAfter.After(time.Now()) {
+					// 证书已存在且未过期
+					return true, nil
+				}
+			} else {
+				// 证书已存在
+				return true, nil
+			}
 		}
 	}
 
@@ -45,8 +49,7 @@ func Action(openapiClient *openapi.Client, pveNode string, certBundle *core.Cert
 		}).
 		Post(fmt.Sprintf("/api2/json/nodes/%s/certificates/custom", pveNode))
 	if err != nil {
-		err = fmt.Errorf("上传证书错误: %w", err)
-		return
+		return false, fmt.Errorf("上传证书错误: %w", err)
 	}
 
 	return false, nil

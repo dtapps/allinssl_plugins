@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/dtapps/allinssl_plugins/core"
 	"github.com/dtapps/allinssl_plugins/synology/certificate"
@@ -40,6 +41,11 @@ func deployCertificatesAction(cfg map[string]any) (*Response, error) {
 	certBundle, err := core.ParseCertBundle([]byte(certStr), []byte(keyStr))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse cert bundle: %w", err)
+	}
+
+	// 1. 检查证书是否过期
+	if certBundle.IsExpired() {
+		return nil, fmt.Errorf("证书已过期 %s", certBundle.NotAfter.Format(time.DateTime))
 	}
 
 	// 创建请求客户端

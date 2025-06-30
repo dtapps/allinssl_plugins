@@ -22,8 +22,7 @@ func Action(openapiClient *openapi.Client, domain string, certID int, certBundle
 		SetResult(&proxyHostsListResp).
 		Get("/nginx/proxy-hosts")
 	if err != nil {
-		err = fmt.Errorf("获取域名列表错误: %w", err)
-		return
+		return 0, fmt.Errorf("获取域名列表错误: %w", err)
 	}
 	for _, item := range proxyHostsListResp {
 		if strings.Contains(strings.Join(item.DomainNames, ","), domain) {
@@ -34,8 +33,7 @@ func Action(openapiClient *openapi.Client, domain string, certID int, certBundle
 				hostID = item.ID
 			}
 		} else {
-			err = fmt.Errorf("域名不存在")
-			return
+			return 0, fmt.Errorf("域名 %s 不存在", domain)
 		}
 	}
 
@@ -47,8 +45,7 @@ func Action(openapiClient *openapi.Client, domain string, certID int, certBundle
 		}).
 		Put(fmt.Sprintf("/nginx/proxy-hosts/%v", hostID))
 	if err != nil {
-		err = fmt.Errorf("绑定证书错误: %w", err)
-		return
+		return hostID, fmt.Errorf("域名 %s 绑定证书错误: %w", domain, err)
 	}
 
 	return hostID, nil

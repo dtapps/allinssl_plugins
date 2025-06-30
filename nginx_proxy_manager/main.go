@@ -27,19 +27,19 @@ type Response struct {
 var pluginMeta = map[string]any{
 	"name":        "nginx_proxy_manager",
 	"description": "部署到Nginx Proxy Manager",
-	"version":     "1.0.1",
+	"version":     "1.0.2",
 	"author":      "dtapps",
 	"config": map[string]any{
-		"url":      "Nginx Proxy Manager URL，for example：http://xxxx:81",
-		"email":    "Nginx Proxy Manager Login Email address",
-		"password": "Nginx Proxy Manager Login Password",
+		"url":      "Nginx Proxy Manager 主机IP或域名，包含协议和端口，http://example.com 或 http://0.0.0.0:81",
+		"email":    "Nginx Proxy Manager 登录邮箱",
+		"password": "Nginx Proxy Manager 登录密码",
 	},
 	"actions": []ActionInfo{
 		{
 			Name:        "proxy_hosts",
 			Description: "部署到 Nginx Proxy Manager Proxy Hosts",
 			Params: map[string]any{
-				"domain": "域名",
+				"domain": "域名，多个域名使用逗号分隔（需要是泛域名证书） 例如：example.com,www.example.com",
 			},
 		},
 		{

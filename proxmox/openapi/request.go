@@ -14,18 +14,15 @@ type Client struct {
 
 // NewClient 创建请求客户端
 // https://pve.proxmox.com/pve-docs/api-viewer/
-func NewClient(pveURL, pveUser, pveTokenID, pveTokenSecret string) (*Client, error) {
-	if pveURL == "" {
-		return nil, fmt.Errorf("check baseURL")
-	}
-	if _, err := url.Parse(pveURL); err != nil {
+func NewClient(baseURL, user, tokenID, tokenSecret string) (*Client, error) {
+	if _, err := url.Parse(baseURL); err != nil {
 		return nil, fmt.Errorf("check baseURL: %w", err)
 	}
 
-	client := resty.New().SetBaseURL(pveURL)
+	client := resty.New().SetBaseURL(baseURL)
 	client.SetRequestMiddlewares(
-		resty.PrepareRequestMiddleware,                            // 先调用，创建 RawRequest
-		PreRequestMiddleware(pveUser, pveTokenID, pveTokenSecret), // 再调用，自定义中间
+		resty.PrepareRequestMiddleware,                   // 先调用，创建 RawRequest
+		PreRequestMiddleware(user, tokenID, tokenSecret), // 再调用，自定义中间
 	)
 	client.SetResponseMiddlewares(
 		Ensure2xxResponseMiddleware,       // 先调用，判断状态是不是请求成功

@@ -4,18 +4,18 @@ AllinSSL 第三方插件库
 
 ## 功能模块
 
-| 模块名称            | 功能描述          | 对应文件                             | 开发版本 | 测试状态  |
-| ------------------- | ----------------- | ------------------------------------ | -------- | --------- |
-| 天翼云              | CDN 加速          | ctyun/cdn                            |          | ✅ 已测试 |
-| 天翼云              | 全站加速          | ctyun/icdn                           |          | ✅ 已测试 |
-| 天翼云              | 证书管理          | ctyun/ccms                           |          | ✅ 已测试 |
-| 天翼云              | 边缘安全加速平台  | ctyun/accessone                      |          | ⚠️ 未测试 |
-| Nginx Proxy Manager | SSL Certificates  | nginx_proxy_manager/certificate      | 2.12.3   | ✅ 已测试 |
-| Nginx Proxy Manager | Proxy Hosts       | nginx_proxy_manager/proxy_host       | 2.12.3   | ✅ 已测试 |
-| Nginx Proxy Manager | Redirection Hosts | nginx_proxy_manager/redirection_host |          | ❌ 计划中 |
-| Nginx Proxy Manager | Streams           | nginx_proxy_manager/stream           |          | ❌ 计划中 |
-| Proxmox VE          | 证书管理          | proxmox/certificate                  | 8.3.3    | ✅ 已测试 |
-| Synology            | 证书管理          | synology/certificate                 | 7.2.2    | ✅ 已测试 |
+| 模块名称            | 功能描述          | 对应文件            | 开发版本 | 测试状态  |
+| ------------------- | ----------------- | ------------------- | -------- | --------- |
+| 天翼云              | CDN 加速          | ctyun               |          | ✅ 已测试 |
+| 天翼云              | 全站加速          | ctyun               |          | ✅ 已测试 |
+| 天翼云              | 证书管理          | ctyun               |          | ✅ 已测试 |
+| 天翼云              | 边缘安全加速平台  | ctyun               |          | ⚠️ 未测试 |
+| Nginx Proxy Manager | SSL Certificates  | nginx_proxy_manager | 2.12.3   | ✅ 已测试 |
+| Nginx Proxy Manager | Proxy Hosts       | nginx_proxy_manager | 2.12.3   | ✅ 已测试 |
+| Nginx Proxy Manager | Redirection Hosts |                     |          | ❌ 计划中 |
+| Nginx Proxy Manager | Streams           |                     |          | ❌ 计划中 |
+| Proxmox VE          | 证书管理          | proxmox             | 8.3.3    | ✅ 已测试 |
+| Synology            | 证书管理          | synology            | 7.2.2    | ✅ 已测试 |
 
 ## 天翼云 使用示例
 

@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/dtapps/allinssl_plugins/nginx_proxy_manager/types"
 	"resty.dev/v3"
 )
 
@@ -19,17 +20,8 @@ type Client struct {
 // NewClient 创建请求客户端
 // http://xxxx:xx/api/schema
 func NewClient(baseURL string, email string, password string) (*Client, error) {
-	if baseURL == "" {
-		return nil, fmt.Errorf("check baseURL")
-	}
 	if _, err := url.Parse(baseURL); err != nil {
 		return nil, fmt.Errorf("check baseURL: %w", err)
-	}
-	if email == "" {
-		return nil, fmt.Errorf("check email")
-	}
-	if password == "" {
-		return nil, fmt.Errorf("check password")
 	}
 
 	// 安全地确保 baseURL 末尾是 /api
@@ -64,10 +56,7 @@ func (c *Client) WithLogin() (*Client, error) {
 	if c.token != "" && c.tokenExp.After(time.Now()) {
 		return c, nil
 	}
-	var loginResp struct {
-		Token   string `json:"token"`
-		Expires string `json:"expires"`
-	}
+	var loginResp types.LoginResponse
 	_, err := c.R().
 		SetContentType("application/json").
 		SetBody(map[string]string{

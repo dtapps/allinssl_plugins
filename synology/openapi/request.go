@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/dtapps/allinssl_plugins/synology/types"
 	"resty.dev/v3"
 )
 
@@ -18,9 +19,6 @@ type Client struct {
 // NewClient 创建请求客户端
 // https://kb.synology.cn/zh-cn/DG/DSM_Login_Web_API_Guide/1
 func NewClient(baseURL, username, password string) (*Client, error) {
-	if baseURL == "" {
-		return nil, fmt.Errorf("check baseURL")
-	}
 	if _, err := url.Parse(baseURL); err != nil {
 		return nil, fmt.Errorf("check baseURL: %w", err)
 	}
@@ -62,15 +60,7 @@ func (c *Client) WithLogin() (*Client, error) {
 	if c.token != "" {
 		return c, nil
 	}
-	var loginResp struct {
-		Data struct {
-			Did          string `json:"did"`            // 会话ID
-			IsPortalPort bool   `json:"is_portal_port"` // 是否通过公网端口访问
-			Sid          string `json:"sid"`            // 设备唯一标识
-			Synotoken    string `json:"synotoken"`      // 防止 CSRF 攻击的安全 Token
-		} `json:"data"`
-		Success bool `json:"success"` // 是否成功
-	}
+	var loginResp types.LoginResponse
 	_, err := c.R().
 		SetQueryParam("api", "SYNO.API.Auth").
 		SetQueryParam("version", "6").
@@ -81,7 +71,11 @@ func (c *Client) WithLogin() (*Client, error) {
 		SetResult(&loginResp).
 		Get("")
 	if err != nil {
-		return nil, fmt.Errorf("login failed: %v", err)
+		return nil, fmt.Errorf("login failed: %w", err)
+	}
+	// 检查登录响应
+	if !loginResp.Success {
+		return nil, fmt.Errorf("login failed")
 	}
 
 	// 检查令牌是否为空
@@ -91,4 +85,10 @@ func (c *Client) WithLogin() (*Client, error) {
 	c.token = loginResp.Data.Synotoken
 
 	return c, nil
+}
+
+// WithDebug 设置令牌
+func (c *Client) WithToken() *Client {
+	c.SetHeader("X-SYNO-TOKEN", c.token)
+	return c
 }
