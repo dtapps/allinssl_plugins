@@ -27,7 +27,7 @@ func Action(openapiClient *openapi.Client, pveNode string, certBundle *core.Cert
 	for _, certInfo := range certListResp.Data {
 		apiFingerprint := strings.ReplaceAll(certInfo.Fingerprint, ":", "")
 		if strings.EqualFold(apiFingerprint, certBundle.GetFingerprintSHA256()) {
-			if len(certInfo.San) > 0 && len(certBundle.DNSNames) > 0 && core.EqualStringSlices(certInfo.San, certBundle.DNSNames) {
+			if certBundle.IsDNSNamesMatch(certInfo.San) {
 				notAfter := time.Unix(certInfo.NotAfter, 0)
 				if notAfter.After(time.Now()) {
 					// 证书已存在且未过期

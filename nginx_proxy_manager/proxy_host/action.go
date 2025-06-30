@@ -43,7 +43,7 @@ func Action(openapiClient *openapi.Client, domain string, certID int, certBundle
 		SetBody(map[string]any{
 			"certificate_id": certID,
 		}).
-		Put(fmt.Sprintf("/nginx/proxy-hosts/%v", hostID))
+		Put(fmt.Sprintf("/nginx/proxy-hosts/%d", hostID))
 	if err != nil {
 		return hostID, fmt.Errorf("域名 %s 绑定证书错误: %w", domain, err)
 	}

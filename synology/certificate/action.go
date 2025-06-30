@@ -32,7 +32,7 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (isExist
 	const customLayout = "Jan 02 15:04:05 2006 MST"
 	for _, certInfo := range certListResp.Data.Certificates {
 		if strings.EqualFold(certInfo.Desc, certBundle.GetNote()) {
-			if len(certInfo.Subject.SubAltName) > 0 && len(certBundle.DNSNames) > 0 && core.EqualStringSlices(certInfo.Subject.SubAltName, certBundle.DNSNames) {
+			if certBundle.IsDNSNamesMatch(certInfo.Subject.SubAltName) {
 				var validTill time.Time
 				validTill, err = time.Parse(customLayout, certInfo.ValidTill)
 				if err != nil {

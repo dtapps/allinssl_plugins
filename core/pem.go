@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 )
@@ -155,6 +156,29 @@ func isSubDomainOf(domain, parent string) bool {
 func (cb *CertBundle) IsExpired() bool {
 	now := time.Now()
 	return now.Before(cb.NotBefore) || now.After(cb.NotAfter)
+}
+
+// IsDNSNamesMatch 判断传入的域名列表是否与证书的 DNSNames 完全一致（顺序可不同）
+func (cb *CertBundle) IsDNSNamesMatch(domains []string) bool {
+	if len(cb.DNSNames) != len(domains) {
+		return false // 长度不一致，直接返回 false
+	}
+
+	// 复制两个切片并排序比较
+	cbCopy := make([]string, len(cb.DNSNames))
+	copy(cbCopy, cb.DNSNames)
+	sort.Strings(cbCopy)
+
+	domainsCopy := make([]string, len(domains))
+	copy(domainsCopy, domains)
+	sort.Strings(domainsCopy)
+
+	for i := 0; i < len(cbCopy); i++ {
+		if cbCopy[i] != domainsCopy[i] {
+			return false
+		}
+	}
+	return true
 }
 
 const notePrefix = "allinssl-"

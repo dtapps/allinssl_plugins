@@ -28,7 +28,7 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (certID 
 		certID = certInfo.ID
 		if strings.EqualFold(certInfo.NiceName, certBundle.GetNote()) {
 			if certInfo.Meta.Certificate != "" && certInfo.Meta.CertificateKey != "" {
-				if len(certInfo.DomainNames) > 0 && len(certBundle.DNSNames) > 0 && core.EqualStringSlices(certInfo.DomainNames, certBundle.DNSNames) {
+				if certBundle.IsDNSNamesMatch(certInfo.DomainNames) {
 					var expiresOn time.Time
 					expiresOn, err = time.Parse(time.DateTime, certInfo.ExpiresOn)
 					if err != nil {
