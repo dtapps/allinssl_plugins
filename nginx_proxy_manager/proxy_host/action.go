@@ -26,7 +26,7 @@ func Action(openapiClient *openapi.Client, domain string, certID int, certBundle
 	}
 	for _, item := range proxyHostsListResp {
 		if strings.Contains(strings.Join(item.DomainNames, ","), domain) {
-			if item.Certificate.Nickname == certBundle.GetNote() {
+			if item.CertificateID == certID {
 				// 证书已绑定域名
 				return item.ID, nil
 			} else {
