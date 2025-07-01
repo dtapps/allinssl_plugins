@@ -27,7 +27,7 @@ type Response struct {
 var pluginMeta = map[string]any{
 	"name":        "ctyun",
 	"description": "部署到天翼云",
-	"version":     "1.0.1",
+	"version":     "1.0.2",
 	"author":      "dtapps",
 	"config": map[string]any{
 		"access_key": "天翼云 AccessKey",
@@ -38,21 +38,21 @@ var pluginMeta = map[string]any{
 			Name:        "cdn",
 			Description: "部署到天翼云CDN加速",
 			Params: map[string]any{
-				"domain": "域名",
+				"domain": "域名，多个域名使用逗号分隔（需要是泛域名证书） 例如：example.com,www.example.com",
 			},
 		},
 		{
 			Name:        "icdn",
 			Description: "部署到天翼云全站加速",
 			Params: map[string]any{
-				"domain": "域名",
+				"domain": "域名，多个域名使用逗号分隔（需要是泛域名证书） 例如：example.com,www.example.com",
 			},
 		},
 		{
 			Name:        "accessone",
 			Description: "部署到天翼云边缘安全加速平台",
 			Params: map[string]any{
-				"domain": "域名",
+				"domain": "域名，多个域名使用逗号分隔（需要是泛域名证书） 例如：example.com,www.example.com",
 			},
 		},
 		{

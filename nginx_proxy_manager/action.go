@@ -53,7 +53,7 @@ func deployProxyHostsAction(cfg map[string]any) (*Response, error) {
 		return nil, fmt.Errorf("证书已过期 %s", certBundle.NotAfter.Format(time.DateTime))
 	}
 
-	// 解析传入域名
+	// 2. 解析传入域名
 	userDomains, isMultiple := core.ParseDomainsFixedSeparator(npmDomain, ",")
 	if isMultiple {
 		if !certBundle.CanDomainsUseCert(userDomains) {

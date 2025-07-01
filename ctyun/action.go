@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/dtapps/allinssl_plugins/core"
 	"github.com/dtapps/allinssl_plugins/ctyun/accessone"
@@ -44,27 +45,32 @@ func deployCdnAction(cfg map[string]any) (*Response, error) {
 		return nil, fmt.Errorf("failed to parse cert bundle: %w", err)
 	}
 
+	// 1. 检查证书是否过期
+	if certBundle.IsExpired() {
+		return nil, fmt.Errorf("证书已过期 %s", certBundle.NotAfter.Format(time.DateTime))
+	}
+
+	// 2. 解析传入域名
+	userDomains, isMultiple := core.ParseDomainsFixedSeparator(ctDomain, ",")
+	if isMultiple {
+		if !certBundle.CanDomainsUseCert(userDomains) {
+			return nil, fmt.Errorf("域名和证书不匹配，证书支持域名：%v，传入域名：%v", certBundle.DNSNames, userDomains)
+		}
+	}
+
 	// 创建请求客户端
 	openapiClient, err := openapi.NewClient(cdn.Endpoint, ctAccessKey, ctSecretKey)
 	if err != nil {
 		return nil, fmt.Errorf("创建请求客户端错误: %w", err)
 	}
-	openapiClient.WithDebug()
+	// openapiClient.WithDebug()
 
 	// 1. 域名绑定证书
-	isBind, err := cdn.Action(openapiClient, ctDomain, certBundle)
-	if err != nil {
-		return nil, err
-	}
-	if isBind {
-		return &Response{
-			Status:  "success",
-			Message: "证书已绑定域名",
-			Result: map[string]any{
-				"domain": ctDomain,
-				"cert":   certBundle,
-			},
-		}, nil
+	for _, domain := range userDomains {
+		_, err = cdn.Action(openapiClient, domain, certBundle)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &Response{
@@ -110,27 +116,32 @@ func deployIcdnAction(cfg map[string]any) (*Response, error) {
 		return nil, fmt.Errorf("failed to parse cert bundle: %w", err)
 	}
 
+	// 1. 检查证书是否过期
+	if certBundle.IsExpired() {
+		return nil, fmt.Errorf("证书已过期 %s", certBundle.NotAfter.Format(time.DateTime))
+	}
+
+	// 2. 解析传入域名
+	userDomains, isMultiple := core.ParseDomainsFixedSeparator(ctDomain, ",")
+	if isMultiple {
+		if !certBundle.CanDomainsUseCert(userDomains) {
+			return nil, fmt.Errorf("域名和证书不匹配，证书支持域名：%v，传入域名：%v", certBundle.DNSNames, userDomains)
+		}
+	}
+
 	// 创建请求客户端
 	openapiClient, err := openapi.NewClient(icdn.Endpoint, ctAccessKey, ctSecretKey)
 	if err != nil {
 		return nil, fmt.Errorf("创建请求客户端错误: %w", err)
 	}
-	openapiClient.WithDebug()
+	// openapiClient.WithDebug()
 
 	// 1. 域名绑定证书
-	isBind, err := icdn.Action(openapiClient, ctDomain, certBundle)
-	if err != nil {
-		return nil, err
-	}
-	if isBind {
-		return &Response{
-			Status:  "success",
-			Message: "证书已绑定域名",
-			Result: map[string]any{
-				"domain": ctDomain,
-				"cert":   certBundle,
-			},
-		}, nil
+	for _, domain := range userDomains {
+		_, err := icdn.Action(openapiClient, domain, certBundle)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &Response{
@@ -176,27 +187,32 @@ func deployAccessoneAction(cfg map[string]any) (*Response, error) {
 		return nil, fmt.Errorf("failed to parse cert bundle: %w", err)
 	}
 
+	// 1. 检查证书是否过期
+	if certBundle.IsExpired() {
+		return nil, fmt.Errorf("证书已过期 %s", certBundle.NotAfter.Format(time.DateTime))
+	}
+
+	// 2. 解析传入域名
+	userDomains, isMultiple := core.ParseDomainsFixedSeparator(ctDomain, ",")
+	if isMultiple {
+		if !certBundle.CanDomainsUseCert(userDomains) {
+			return nil, fmt.Errorf("域名和证书不匹配，证书支持域名：%v，传入域名：%v", certBundle.DNSNames, userDomains)
+		}
+	}
+
 	// 创建请求客户端
 	openapiClient, err := openapi.NewClient(accessone.Endpoint, ctAccessKey, ctSecretKey)
 	if err != nil {
 		return nil, fmt.Errorf("创建请求客户端错误: %w", err)
 	}
-	openapiClient.WithDebug()
+	// openapiClient.WithDebug()
 
 	// 1. 域名绑定证书
-	isBind, err := accessone.Action(openapiClient, ctDomain, certBundle)
-	if err != nil {
-		return nil, err
-	}
-	if isBind {
-		return &Response{
-			Status:  "success",
-			Message: "证书已绑定域名",
-			Result: map[string]any{
-				"domain": ctDomain,
-				"cert":   certBundle,
-			},
-		}, nil
+	for _, domain := range userDomains {
+		_, err := accessone.Action(openapiClient, domain, certBundle)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &Response{
@@ -239,12 +255,17 @@ func deployCcmsAction(cfg map[string]any) (*Response, error) {
 		return nil, fmt.Errorf("failed to parse cert bundle: %w", err)
 	}
 
+	// 1. 检查证书是否过期
+	if certBundle.IsExpired() {
+		return nil, fmt.Errorf("证书已过期 %s", certBundle.NotAfter.Format(time.DateTime))
+	}
+
 	// 创建请求客户端
 	openapiClient, err := openapi.NewClient(ccms.Endpoint, ctAccessKey, ctSecretKey)
 	if err != nil {
 		return nil, fmt.Errorf("创建请求客户端错误: %w", err)
 	}
-	openapiClient.WithDebug()
+	// openapiClient.WithDebug()
 
 	// 1. 上传证书
 	isExist, err := ccms.Action(openapiClient, certBundle)
