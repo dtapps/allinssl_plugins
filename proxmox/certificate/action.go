@@ -11,15 +11,15 @@ import (
 )
 
 // 上传证书
-// pveNode: 证书备注名
+// pveNode: 节点
 // isExist: 是否存在
 func Action(openapiClient *openapi.Client, pveNode string, certBundle *core.CertBundle) (isExist bool, err error) {
 
 	// 1. 获取证书列表
 	var certListResp types.CertificateListResponse
 	_, err = openapiClient.R().
-		SetContentType("application/json").
 		SetResult(&certListResp).
+		SetContentType("application/json").
 		Get(fmt.Sprintf("/api2/json/nodes/%s/certificates/info", pveNode))
 	if err != nil {
 		return false, fmt.Errorf("获取证书列表错误: %w", err)
@@ -42,11 +42,11 @@ func Action(openapiClient *openapi.Client, pveNode string, certBundle *core.Cert
 
 	// 2. 上传证书
 	_, err = openapiClient.R().
-		SetContentType("application/json").
 		SetBody(map[string]string{
 			"certificates": certBundle.Certificate,
 			"key":          certBundle.PrivateKey,
 		}).
+		SetContentType("application/json").
 		Post(fmt.Sprintf("/api2/json/nodes/%s/certificates/custom", pveNode))
 	if err != nil {
 		return false, fmt.Errorf("上传证书错误: %w", err)

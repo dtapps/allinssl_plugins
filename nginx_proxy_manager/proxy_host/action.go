@@ -11,15 +11,15 @@ import (
 
 // 域名绑定证书
 // domain: 域名
-// note: 证书备注名
+// certID: 证书ID
 // hostID: 域名ID
 func Action(openapiClient *openapi.Client, domain string, certID int, certBundle *core.CertBundle) (hostID int, err error) {
 
 	// 1. 获取域名列表
 	var proxyHostsListResp []types.ProxyHostListResponse
 	_, err = openapiClient.R().
-		SetContentType("application/json").
 		SetResult(&proxyHostsListResp).
+		SetContentType("application/json").
 		Get("/nginx/proxy-hosts")
 	if err != nil {
 		return 0, fmt.Errorf("获取域名列表错误: %w", err)
@@ -40,10 +40,10 @@ func Action(openapiClient *openapi.Client, domain string, certID int, certBundle
 
 	// 2. 绑定证书
 	_, err = openapiClient.R().
-		SetContentType("application/json").
 		SetBody(map[string]any{
 			"certificate_id": certID,
 		}).
+		SetContentType("application/json").
 		Put(fmt.Sprintf("/nginx/proxy-hosts/%d", hostID))
 	if err != nil {
 		return hostID, fmt.Errorf("域名 %s 绑定证书错误: %w", domain, err)

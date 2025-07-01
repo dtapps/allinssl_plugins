@@ -18,8 +18,8 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (certID 
 	// 1. 获取证书列表
 	var certListResp []types.CertificateListResponse
 	_, err = openapiClient.R().
-		SetContentType("application/json").
 		SetResult(&certListResp).
+		SetContentType("application/json").
 		Get("/nginx/certificates")
 	if err != nil {
 		return 0, false, fmt.Errorf("获取证书列表错误: %w", err)
@@ -50,12 +50,12 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (certID 
 	if certID == 0 {
 		var certCreateResp types.CertificateCreateResponse
 		_, err = openapiClient.R().
-			SetContentType("application/json").
 			SetBody(map[string]string{
 				"provider":  "other",
 				"nice_name": certBundle.GetNote(),
 			}).
 			SetResult(&certCreateResp).
+			SetContentType("application/json").
 			Post("/nginx/certificates")
 		if err != nil {
 			return 0, false, fmt.Errorf("创建证书错误: %w", err)
