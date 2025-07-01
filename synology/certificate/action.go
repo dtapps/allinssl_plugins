@@ -15,12 +15,13 @@ import (
 func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (isExist bool, err error) {
 
 	// 1. 获取证书列表
-	var certListResp types.CertificateListResponse
+	var certListResp types.CommonResponse[types.CertificateListResponse]
 	_, err = openapiClient.R().
 		SetQueryParam("api", "SYNO.Core.Certificate.CRT").
 		SetQueryParam("version", "1").
 		SetQueryParam("method", "list").
 		SetResult(&certListResp).
+		SetContentType("application/json").
 		Get("")
 	if err != nil {
 		return false, fmt.Errorf("获取证书列表错误: %w", err)
@@ -50,7 +51,7 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (isExist
 	}
 
 	// 2. 上传证书
-	var certUpdateResp types.CommonResponse
+	var certUpdateResp types.CommonResponse[types.CertificateUpdateResponse]
 	_, err = openapiClient.R().
 		SetQueryParam("api", "SYNO.Core.Certificate").
 		SetQueryParam("version", "1").
@@ -61,6 +62,8 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (isExist
 		SetFileReader("cert", "certificate.pem", strings.NewReader(certBundle.Certificate)).
 		SetFileReader("key", "private_key.pem", strings.NewReader(certBundle.PrivateKey)).
 		SetResult(&certUpdateResp).
+		SetContentType("application/json").
+		SetForceResponseContentType("application/json").
 		Post("")
 	if err != nil {
 		return false, fmt.Errorf("上传证书错误: %w", err)
