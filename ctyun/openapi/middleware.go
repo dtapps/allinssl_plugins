@@ -1,12 +1,10 @@
 package openapi
 
 import (
-	"bytes"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"io"
 	"net/url"
 	"sort"
 	"strings"
@@ -53,31 +51,6 @@ func PreRequestMiddleware(accessKeyId, secretAccessKey string) resty.RequestMidd
 				payloadStr = b
 			case []byte:
 				payloadStr = string(b)
-			case io.Reader:
-				if seeker, ok := b.(io.ReadSeeker); ok {
-					buf, err := io.ReadAll(seeker)
-					if err != nil {
-						return fmt.Errorf("read body as io.ReadSeeker failed: %w", err)
-					}
-					payloadStr = string(buf)
-					_, err = seeker.Seek(0, io.SeekStart)
-					if err != nil {
-						return fmt.Errorf("failed to seek io.Reader back: %w", err)
-					}
-				} else {
-					buf, err := io.ReadAll(b)
-					if err != nil {
-						return fmt.Errorf("read body as non-seekable io.Reader failed: %w", err)
-					}
-					payloadStr = string(buf)
-					r.Body = bytes.NewReader(buf)
-				}
-				buf, err := io.ReadAll(b)
-				if err != nil {
-					return fmt.Errorf("read body as io.Reader failed: %w", err)
-				}
-				payloadStr = string(buf)
-			default:
 			}
 		}
 

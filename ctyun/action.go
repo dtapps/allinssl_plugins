@@ -8,6 +8,7 @@ import (
 	"github.com/dtapps/allinssl_plugins/ctyun/ccms"
 	"github.com/dtapps/allinssl_plugins/ctyun/cdn"
 	"github.com/dtapps/allinssl_plugins/ctyun/icdn"
+	"github.com/dtapps/allinssl_plugins/ctyun/openapi"
 )
 
 // 部署到天翼云CDN加速
@@ -24,16 +25,16 @@ func deployCdnAction(cfg map[string]any) (*Response, error) {
 	if !ok || keyStr == "" {
 		return nil, fmt.Errorf("key is required and must be a string")
 	}
-	accessKey, ok := cfg["access_key"].(string)
-	if !ok || accessKey == "" {
+	ctAccessKey, ok := cfg["access_key"].(string)
+	if !ok || ctAccessKey == "" {
 		return nil, fmt.Errorf("access_key is required and must be a string")
 	}
-	secretKey, ok := cfg["secret_key"].(string)
-	if !ok || secretKey == "" {
+	ctSecretKey, ok := cfg["secret_key"].(string)
+	if !ok || ctSecretKey == "" {
 		return nil, fmt.Errorf("secret_key is required and must be a string")
 	}
-	domain, ok := cfg["domain"].(string)
-	if !ok || domain == "" {
+	ctDomain, ok := cfg["domain"].(string)
+	if !ok || ctDomain == "" {
 		return nil, fmt.Errorf("domain is required and must be a string")
 	}
 
@@ -43,53 +44,34 @@ func deployCdnAction(cfg map[string]any) (*Response, error) {
 		return nil, fmt.Errorf("failed to parse cert bundle: %w", err)
 	}
 
-	// 创建CDN加速客户端
-	cdnClient, err := cdn.NewClient(accessKey, secretKey)
+	// 创建请求客户端
+	openapiClient, err := openapi.NewClient(cdn.Endpoint, ctAccessKey, ctSecretKey)
 	if err != nil {
-		return nil, fmt.Errorf("创建CDN加速客户端失败: %w", err)
+		return nil, fmt.Errorf("创建请求客户端错误: %w", err)
 	}
+	openapiClient.WithDebug()
 
-	// 1. 查询域名是否存在和现存的证书信息
-	queryDomainInfo, err := cdnClient.GetQueryDomainInfo(domain)
+	// 1. 域名绑定证书
+	isBind, err := cdn.Action(openapiClient, ctDomain, certBundle)
 	if err != nil {
-		return nil, fmt.Errorf("查询域名是否存在和现存的证书信息失败: %w", err)
+		return nil, err
 	}
-	if queryDomainInfo.ReturnObj.Domain == "" {
-		return nil, fmt.Errorf("域名不存在")
-	}
-
-	// 2. 检查域名是否配置了现存证书
-	if queryDomainInfo.ReturnObj.CertName == certBundle.GetNote() {
+	if isBind {
 		return &Response{
 			Status:  "success",
 			Message: "证书已绑定域名",
 			Result: map[string]any{
-				"domain": domain,
+				"domain": ctDomain,
 				"cert":   certBundle,
 			},
 		}, nil
-	}
-
-	// 3. 查询证书是否已存，不存在就上传证书
-	queryCertInfo, _ := cdnClient.GetQueryCertInfo(certBundle.GetNote())
-	if queryCertInfo.ReturnObj.Result.Name != certBundle.GetNote() {
-		_, err = cdnClient.PostUpdateCertInfo(certBundle.GetNote(), certBundle.PrivateKey, certBundle.Certificate)
-		if err != nil {
-			return nil, fmt.Errorf("上传证书失败: %w", err)
-		}
-	}
-
-	// 4. 更新证书到域名
-	_, err = cdnClient.PostUpdateDomainInfo(domain, certBundle.GetNote())
-	if err != nil {
-		return nil, fmt.Errorf("更新证书到域名失败: %w", err)
 	}
 
 	return &Response{
 		Status:  "success",
 		Message: "更新域名证书成功",
 		Result: map[string]any{
-			"domain": domain,
+			"domain": ctDomain,
 			"cert":   certBundle,
 		},
 	}, nil
@@ -109,16 +91,16 @@ func deployIcdnAction(cfg map[string]any) (*Response, error) {
 	if !ok || keyStr == "" {
 		return nil, fmt.Errorf("key is required and must be a string")
 	}
-	accessKey, ok := cfg["access_key"].(string)
-	if !ok || accessKey == "" {
+	ctAccessKey, ok := cfg["access_key"].(string)
+	if !ok || ctAccessKey == "" {
 		return nil, fmt.Errorf("access_key is required and must be a string")
 	}
-	secretKey, ok := cfg["secret_key"].(string)
-	if !ok || secretKey == "" {
+	ctSecretKey, ok := cfg["secret_key"].(string)
+	if !ok || ctSecretKey == "" {
 		return nil, fmt.Errorf("secret_key is required and must be a string")
 	}
-	domain, ok := cfg["domain"].(string)
-	if !ok || domain == "" {
+	ctDomain, ok := cfg["domain"].(string)
+	if !ok || ctDomain == "" {
 		return nil, fmt.Errorf("domain is required and must be a string")
 	}
 
@@ -128,53 +110,34 @@ func deployIcdnAction(cfg map[string]any) (*Response, error) {
 		return nil, fmt.Errorf("failed to parse cert bundle: %w", err)
 	}
 
-	// 创建全站加速客户端
-	icdnClient, err := icdn.NewClient(accessKey, secretKey)
+	// 创建请求客户端
+	openapiClient, err := openapi.NewClient(icdn.Endpoint, ctAccessKey, ctSecretKey)
 	if err != nil {
-		return nil, fmt.Errorf("创建全站加速客户端失败: %w", err)
+		return nil, fmt.Errorf("创建请求客户端错误: %w", err)
 	}
+	openapiClient.WithDebug()
 
-	// 1. 查询域名是否存在和现存的证书信息
-	queryDomainInfo, err := icdnClient.GetQueryDomainInfo(domain)
+	// 1. 域名绑定证书
+	isBind, err := icdn.Action(openapiClient, ctDomain, certBundle)
 	if err != nil {
-		return nil, fmt.Errorf("查询域名是否存在和现存的证书信息失败: %w", err)
+		return nil, err
 	}
-	if queryDomainInfo.ReturnObj.Domain == "" {
-		return nil, fmt.Errorf("域名不存在")
-	}
-
-	// 2. 检查域名是否配置了现存证书
-	if queryDomainInfo.ReturnObj.CertName == certBundle.GetNote() {
+	if isBind {
 		return &Response{
 			Status:  "success",
 			Message: "证书已绑定域名",
 			Result: map[string]any{
-				"domain": domain,
+				"domain": ctDomain,
 				"cert":   certBundle,
 			},
 		}, nil
-	}
-
-	// 3. 查询证书是否已存，不存在就上传证书
-	queryCertInfo, _ := icdnClient.GetQueryCertInfo(certBundle.GetNote())
-	if queryCertInfo.ReturnObj.Result.Name != certBundle.GetNote() {
-		_, err = icdnClient.PostUpdateCertInfo(certBundle.GetNote(), certBundle.PrivateKey, certBundle.Certificate)
-		if err != nil {
-			return nil, fmt.Errorf("上传证书失败: %w", err)
-		}
-	}
-
-	// 4. 更新证书到域名
-	_, err = icdnClient.PostUpdateDomainInfo(domain, certBundle.GetNote())
-	if err != nil {
-		return nil, fmt.Errorf("更新证书到域名失败: %w", err)
 	}
 
 	return &Response{
 		Status:  "success",
 		Message: "更新域名证书成功",
 		Result: map[string]any{
-			"domain": domain,
+			"domain": ctDomain,
 			"cert":   certBundle,
 		},
 	}, nil
@@ -194,16 +157,16 @@ func deployAccessoneAction(cfg map[string]any) (*Response, error) {
 	if !ok || keyStr == "" {
 		return nil, fmt.Errorf("key is required and must be a string")
 	}
-	accessKey, ok := cfg["access_key"].(string)
-	if !ok || accessKey == "" {
+	ctAccessKey, ok := cfg["access_key"].(string)
+	if !ok || ctAccessKey == "" {
 		return nil, fmt.Errorf("access_key is required and must be a string")
 	}
-	secretKey, ok := cfg["secret_key"].(string)
-	if !ok || secretKey == "" {
+	ctSecretKey, ok := cfg["secret_key"].(string)
+	if !ok || ctSecretKey == "" {
 		return nil, fmt.Errorf("secret_key is required and must be a string")
 	}
-	domain, ok := cfg["domain"].(string)
-	if !ok || domain == "" {
+	ctDomain, ok := cfg["domain"].(string)
+	if !ok || ctDomain == "" {
 		return nil, fmt.Errorf("domain is required and must be a string")
 	}
 
@@ -213,53 +176,34 @@ func deployAccessoneAction(cfg map[string]any) (*Response, error) {
 		return nil, fmt.Errorf("failed to parse cert bundle: %w", err)
 	}
 
-	// 创建边缘安全加速平台客户端
-	accessoneClient, err := accessone.NewClient(accessKey, secretKey)
+	// 创建请求客户端
+	openapiClient, err := openapi.NewClient(accessone.Endpoint, ctAccessKey, ctSecretKey)
 	if err != nil {
-		return nil, fmt.Errorf("创建边缘安全加速平台客户端失败: %w", err)
+		return nil, fmt.Errorf("创建请求客户端错误: %w", err)
 	}
+	openapiClient.WithDebug()
 
-	// 1. 查询域名是否存在和现存的证书信息
-	queryDomainInfo, err := accessoneClient.GetQueryDomainInfo(domain)
+	// 1. 域名绑定证书
+	isBind, err := accessone.Action(openapiClient, ctDomain, certBundle)
 	if err != nil {
-		return nil, fmt.Errorf("查询域名是否存在和现存的证书信息失败: %w", err)
+		return nil, err
 	}
-	if queryDomainInfo.ReturnObj.Domain == "" {
-		return nil, fmt.Errorf("域名不存在")
-	}
-
-	// 2. 检查域名是否配置了现存证书
-	if queryDomainInfo.ReturnObj.CertName == certBundle.GetNote() {
+	if isBind {
 		return &Response{
 			Status:  "success",
 			Message: "证书已绑定域名",
 			Result: map[string]any{
-				"domain": domain,
+				"domain": ctDomain,
 				"cert":   certBundle,
 			},
 		}, nil
-	}
-
-	// 3. 查询证书是否已存，不存在就上传证书
-	queryCertInfo, _ := accessoneClient.GetQueryCertInfo(certBundle.GetNote())
-	if queryCertInfo.ReturnObj.Name != certBundle.GetNote() {
-		_, err = accessoneClient.PostUpdateCertInfo(certBundle.GetNote(), certBundle.PrivateKey, certBundle.Certificate)
-		if err != nil {
-			return nil, fmt.Errorf("上传证书失败: %w", err)
-		}
-	}
-
-	// 4. 更新证书到域名
-	_, err = accessoneClient.PostUpdateDomainInfo(domain, certBundle.GetNote())
-	if err != nil {
-		return nil, fmt.Errorf("更新证书到域名失败: %w", err)
 	}
 
 	return &Response{
 		Status:  "success",
 		Message: "更新域名证书成功",
 		Result: map[string]any{
-			"domain": domain,
+			"domain": ctDomain,
 			"cert":   certBundle,
 		},
 	}, nil
@@ -275,19 +219,17 @@ func deployCcmsAction(cfg map[string]any) (*Response, error) {
 	if !ok || certStr == "" {
 		return nil, fmt.Errorf("cert is required and must be a string")
 	}
-
 	keyStr, ok := cfg["key"].(string)
 	if !ok || keyStr == "" {
 		return nil, fmt.Errorf("key is required and must be a string")
 	}
 
-	accessKey, ok := cfg["access_key"].(string)
-	if !ok || accessKey == "" {
+	ctAccessKey, ok := cfg["access_key"].(string)
+	if !ok || ctAccessKey == "" {
 		return nil, fmt.Errorf("access_key is required and must be a string")
 	}
-
-	secretKey, ok := cfg["secret_key"].(string)
-	if !ok || secretKey == "" {
+	ctSecretKey, ok := cfg["secret_key"].(string)
+	if !ok || ctSecretKey == "" {
 		return nil, fmt.Errorf("secret_key is required and must be a string")
 	}
 
@@ -297,33 +239,26 @@ func deployCcmsAction(cfg map[string]any) (*Response, error) {
 		return nil, fmt.Errorf("failed to parse cert bundle: %w", err)
 	}
 
-	// 创建证书管理服务客户端
-	ccmsClient, err := ccms.NewClient(accessKey, secretKey)
+	// 创建请求客户端
+	openapiClient, err := openapi.NewClient(ccms.Endpoint, ctAccessKey, ctSecretKey)
 	if err != nil {
-		return nil, fmt.Errorf("创建证书管理服务客户端错误: %w", err)
+		return nil, fmt.Errorf("创建请求客户端错误: %w", err)
 	}
+	openapiClient.WithDebug()
 
-	// 1. 查询证书是否存在
-	queryCertList, err := ccmsClient.GetQueryCertList()
+	// 1. 上传证书
+	isExist, err := ccms.Action(openapiClient, certBundle)
 	if err != nil {
-		return nil, fmt.Errorf("查询证书是否存在错误: %w", err)
+		return nil, err
 	}
-	for _, certificate := range queryCertList.ReturnObj.List {
-		if certificate.Name == certBundle.GetNoteShort() {
-			return &Response{
-				Status:  "success",
-				Message: "证书已存在",
-				Result: map[string]any{
-					"cert": certBundle,
-				},
-			}, nil
-		}
-	}
-
-	// 2. 上传证书
-	_, err = ccmsClient.PostUpdateCertInfo(certBundle.GetNoteShort(), certBundle.Certificate, certBundle.PrivateKey)
-	if err != nil {
-		return nil, fmt.Errorf("上传证书错误: %w", err)
+	if isExist {
+		return &Response{
+			Status:  "success",
+			Message: "证书已存在",
+			Result: map[string]any{
+				"cert": certBundle,
+			},
+		}, nil
 	}
 
 	return &Response{

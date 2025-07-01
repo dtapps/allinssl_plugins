@@ -1,19 +1,16 @@
 package types
 
 // CDN加速 查询域名配置信息 响应参数
+// https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=112&api=10849&data=173&isNormal=1&vid=166
+// https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=108&api=11304&data=161&isNormal=1&vid=154
 type CdnQueryDomainInfoResponse struct {
 	Domain   string `json:"domain"`    // 域名
 	CertName string `json:"cert_name"` // 证书备注名
 }
 
-// CDN加速 修改域名配置 请求参数
-type CdnUpdateDomainInfoRequest struct {
-	Domain      string `json:"domain"`              // 域名
-	ProductCode string `json:"product_code"`        // 产品类型
-	CertName    string `json:"cert_name,omitempty"` // 证书备注名
-}
-
 // CDN加速 查询证书详情 响应参数
+// https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=112&api=10837&data=173&isNormal=1&vid=166
+// https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=108&api=10899&data=161&isNormal=1&vid=154
 type CdnQueryCertInfoResponse struct {
 	Result struct {
 		ID   int    `json:"id"`   // 证书id
@@ -21,14 +18,9 @@ type CdnQueryCertInfoResponse struct {
 	} `json:"result"` // 证书信息
 }
 
-// CDN加速 创建证书 请求参数
-type CdnUpdateCertInfoRequest struct {
-	Name  string `json:"name"`  // 证书备注名
-	Key   string `json:"key"`   // 证书私钥
-	Certs string `json:"certs"` // 证书公钥
-}
-
 // CDN加速 创建证书 响应参数
+// https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=112&api=10835&data=173&isNormal=1&vid=166
+// https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=108&api=10893&data=161&isNormal=1&vid=154
 type CdnUpdateCertInfoResponse struct {
 	ID int `json:"id"` // 证书id
 }
