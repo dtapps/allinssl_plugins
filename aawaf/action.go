@@ -76,7 +76,7 @@ func deploySiteAction(cfg map[string]any) (*Response, error) {
 		Status:  "success",
 		Message: "更新域名证书成功",
 		Result: map[string]any{
-			"domain": wafApiKey,
+			"domain": wafDomain,
 			"cert":   certBundle,
 		},
 	}, nil

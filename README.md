@@ -16,7 +16,7 @@ AllinSSL 第三方插件库
 | Nginx Proxy Manager | Streams           |                     |          | ❌ 计划中 |
 | Proxmox VE          | 证书管理          | proxmox             | 8.3.3    | ✅ 已测试 |
 | Synology            | 证书管理          | synology            | 7.2.2    | ✅ 已测试 |
-| 堡塔云WAF            | 网站          | aawaf            | 6.1 / 6.2    | ✅ 已测试 |
+| 堡塔云WAF            | 网站（推荐用官方）         | aawaf            | 6.1 / 6.2    | ✅ 已测试 |
 
 
 ## 天翼云 使用示例
