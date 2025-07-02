@@ -26,6 +26,7 @@ func deployCdnAction(cfg map[string]any) (*Response, error) {
 	if !ok || keyStr == "" {
 		return nil, fmt.Errorf("key is required and must be a string")
 	}
+
 	ctAccessKey, ok := cfg["access_key"].(string)
 	if !ok || ctAccessKey == "" {
 		return nil, fmt.Errorf("access_key is required and must be a string")
@@ -97,6 +98,7 @@ func deployIcdnAction(cfg map[string]any) (*Response, error) {
 	if !ok || keyStr == "" {
 		return nil, fmt.Errorf("key is required and must be a string")
 	}
+
 	ctAccessKey, ok := cfg["access_key"].(string)
 	if !ok || ctAccessKey == "" {
 		return nil, fmt.Errorf("access_key is required and must be a string")
@@ -168,6 +170,7 @@ func deployAccessoneAction(cfg map[string]any) (*Response, error) {
 	if !ok || keyStr == "" {
 		return nil, fmt.Errorf("key is required and must be a string")
 	}
+
 	ctAccessKey, ok := cfg["access_key"].(string)
 	if !ok || ctAccessKey == "" {
 		return nil, fmt.Errorf("access_key is required and must be a string")

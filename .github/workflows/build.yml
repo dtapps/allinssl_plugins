@@ -4,28 +4,29 @@ on:
   workflow_dispatch: # 允许手动触发工作流
     inputs:
       module: # 模块选择输入
-        description: '选择要打包的模块目录'
+        description: "选择要打包的模块目录"
         required: true
-        default: 'ctyun'
+        default: "ctyun"
         type: choice
         options:
           - ctyun
           - nginx_proxy_manager
           - proxmox
           - synology
+          - aawaf
       arch: # 架构选择输入
-        description: '选择架构'
+        description: "选择架构"
         required: true
-        default: 'all'
+        default: "all"
         type: choice
         options:
           - all
           - amd64
           - arm64
       version: # 新增：版本号输入
-        description: '输入插件版本号（可选）'
+        description: "输入插件版本号（可选）"
         required: false # 版本号可以不填
-        default: '' # 默认值为空字符串
+        default: "" # 默认值为空字符串
         type: string
 
 jobs:
@@ -41,7 +42,7 @@ jobs:
       - name: 设置Go环境 # 步骤：设置 Go 语言环境
         uses: actions/setup-go@v5 # 使用 actions/setup-go@v5
         with:
-          go-version: '1.24' # 指定 Go 版本
+          go-version: "1.24" # 指定 Go 版本
           cache: true # 启用 Go 模块缓存，加快后续构建速度
 
       - name: 安装依赖 # 步骤：下载 Go 模块依赖
@@ -51,14 +52,14 @@ jobs:
         run: |
           # 打印当前工作目录，以便调试
           echo "当前工作目录：$(pwd)"
-          
+
           # 创建输出目录
           mkdir -p bin
-          
+
           # 检查 bin 目录是否已创建
           echo "检查 bin/ 目录是否存在..."
           ls -ld bin/
-          
+
           # 处理模块参数：如果选择 "all"，则列出所有子目录作为模块；否则使用指定模块
           if [ "${{ github.event.inputs.module }}" = "all" ]; then
             # ls -d */ 列出所有目录，grep -v 'bin/' 排 除 bin 目录，sed 's#/##' 去掉斜杠
@@ -67,14 +68,14 @@ jobs:
             # 使用用户输入的指定模块
             MODULES=${{ github.event.inputs.module }}
           fi
-          
+
           # 处理架构参数：如果选择 "all"，则构建 amd64 和 arm64；否则使用指定架构
           if [ "${{ github.event.inputs.arch }}" = "all" ]; then
             ARCHES=(amd64 arm64) # 定义支持的架构数组
           else
             ARCHES=(${{ github.event.inputs.arch }}) # 使用用户输入的指定架构
           fi
-          
+
           # 循环遍历每个模块进行构建
           for module in $MODULES; do
             # 检查模块目录是否存在且包含 Makefile 文件
@@ -82,7 +83,7 @@ jobs:
               echo "--------------------------------------------------"
               echo "开始构建模块: $module"
               echo "进入模块目录: $(pwd)/$module"
-              
+
               # 循环遍历每个架构进行构建
               for arch in "${ARCHES[@]}"; do
                 echo "构建架构: $arch"
@@ -102,11 +103,11 @@ jobs:
               echo "警告: 模块 $module 不存在或缺少Makefile"
             fi
           done
-          
+
           # 构建完成后，列出 bin/ 目录的详细内容，以检查是否有文件生成
           echo "构建完成后，检查 bin/ 目录内容："
           ls -laR bin/ || echo "bin/ 目录为空或不存在文件。" # 如果 ls 失败，则打印消息
-          
+
           # 尝试使用 tree 命令显示目录结构，如果系统没有安装则忽略错误
           command -v tree >/dev/null 2>&1 && echo "bin/ 目录树形结构：" && tree bin/ || echo "tree 命令未找到，无法显示树形结构。"
 
@@ -146,8 +147,10 @@ jobs:
             - **模块**: ${{ github.event.inputs.module }}
             - **架构**: ${{ github.event.inputs.arch }}
             - **版本号**: ${{ github.event.inputs.version || '未指定' }}
-            
+
             此 Release 包含了针对所选模块和架构的打包文件。
+
+            👉 [查看更新日志](https://github.com/${{ github.repository }}/blob/${{ github.sha }}/${{ github.event.inputs.module }}/CHANGELOG.md)
           draft: false # 是否作为草稿发布 (true 为草稿，false 为正式发布)
           prerelease: false # 是否作为预发布版本 (true 为预发布，false 为正式发布)
           # 将下载的产物作为 Release 附件上传

@@ -16,6 +16,8 @@ AllinSSL 第三方插件库
 | Nginx Proxy Manager | Streams           |                     |          | ❌ 计划中 |
 | Proxmox VE          | 证书管理          | proxmox             | 8.3.3    | ✅ 已测试 |
 | Synology            | 证书管理          | synology            | 7.2.2    | ✅ 已测试 |
+| 堡塔云WAF            | 网站          | aawaf            | 6.1 / 6.2    | ✅ 已测试 |
+
 
 ## 天翼云 使用示例
 
@@ -25,8 +27,8 @@ AllinSSL 第三方插件库
 
 ```json
 {
-  "access_key": "您的AccessKey",
-  "secret_key": "您的SecretKey"
+  "access_key": "AccessKey",
+  "secret_key": "SecretKey"
 }
 ```
 
@@ -38,9 +40,9 @@ AllinSSL 第三方插件库
 
 ```json
 {
-  "url": "您的网站，包含协议和端口",
-  "email": "您的邮箱",
-  "password": "您的密码"
+  "url": "主机IP或域名，包含协议和端口，http://example.com 或 http://0.0.0.0:81",
+  "email": "登录邮箱",
+  "password": "登录密码"
 }
 ```
 
@@ -52,11 +54,11 @@ AllinSSL 第三方插件库
 
 ```json
 {
-  "url": "您的网站，包含协议和端口",
-  "node": "您的节点名称",
-  "user": "您的用户名和领域",
-  "token_id": "您的令牌ID",
-  "token_secret": "您的令牌密钥"
+  "url": "主机IP或域名，包含协议和端口，例如：https://example.com 或 https://0.0.0.0:8006",
+  "node": "节点名称，例如：pve",
+  "user": "用户名和领域，例如：root@pam",
+  "token_id": "令牌 ID",
+  "token_secret": "令牌 密钥"
 }
 ```
 
@@ -68,10 +70,23 @@ AllinSSL 第三方插件库
 
 ```json
 {
-  "url": "您的网站，包含协议和端口",
-  "username": "您的用户名",
-  "password": "您的密码"
+  "url": "主机IP或域名，包含协议和端口，例如：https://example.com 或 https://0.0.0.0:5001",
+  "username": "用户名",
+  "password": "密码"
 }
 ```
 
 4.  由于 `隐私` 和 `双重验证` 问题，建议建个独立的账号给插件使用，开启双重验证会导致登录失败！
+
+## 堡塔云WAF 使用示例
+
+1. 将模块文件放入 AllinSSL 插件目录(plugins)
+2. 在 AllinSSL 后台「添加授权 API」选择 aawaf 插件
+3. 配置参数（JSON 格式）：
+
+```json
+{
+  "url": "主机IP或域名，包含协议和端口，https://example.com 或 https://0.0.0.0:8379",
+  "api_key": "接口密钥",
+}
+```
