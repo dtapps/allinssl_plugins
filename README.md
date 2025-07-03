@@ -16,7 +16,8 @@ AllinSSL 第三方插件库
 | Nginx Proxy Manager | Streams           |                     |          | ❌ 计划中 |
 | Proxmox VE          | 证书管理          | proxmox             | 8.3.3    | ✅ 已测试 |
 | Synology            | 证书管理          | synology            | 7.2.2    | ✅ 已测试 |
-| 堡塔云WAF            | 网站（推荐用官方）         | aawaf            | 6.1 / 6.2    | ✅ 已测试 |
+| 堡塔云WAF            | 网站         | aawaf            | 6.1 / 6.2    | ✅ 已测试，推荐用官方 |
+| 雷池WAF            | 防护应用（API更新接口不合理）         | safeline            | 8.10.1    | ✅ 已测试，推荐用官方 |
 
 
 ## 天翼云 使用示例
@@ -88,5 +89,18 @@ AllinSSL 第三方插件库
 {
   "url": "主机IP或域名，包含协议和端口，https://example.com 或 https://0.0.0.0:8379",
   "api_key": "接口密钥",
+}
+```
+
+## 雷池WAF 使用示例
+
+1. 将模块文件放入 AllinSSL 插件目录(plugins)
+2. 在 AllinSSL 后台「添加授权 API」选择 aawaf 插件
+3. 配置参数（JSON 格式）：
+
+```json
+{
+  "url": "主机IP或域名，包含协议和端口，https://example.com 或 https://0.0.0.0:9443",
+  "api_token": "接口密钥",
 }
 ```

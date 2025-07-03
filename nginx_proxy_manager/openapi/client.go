@@ -33,7 +33,7 @@ func NewClient(baseURL string, email string, password string) (*Client, error) {
 	client := resty.New().SetBaseURL(baseURL)
 	client.SetResponseMiddlewares(
 		Ensure2xxResponseMiddleware,       // 先调用，判断状态是不是请求成功
-		resty.AutoParseResponseMiddleware, // 必须放后面，才能先判断状态码再解析
+		resty.AutoParseResponseMiddleware, // 再调用，才能先判断状态码再解析
 	)
 
 	return &Client{

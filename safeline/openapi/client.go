@@ -13,16 +13,21 @@ type Client struct {
 }
 
 // NewClient 创建请求客户端
-// https://pve.proxmox.com/pve-docs/api-viewer/
-func NewClient(baseURL, user, tokenID, tokenSecret string) (*Client, error) {
+func NewClient(baseURL, apiToken string) (*Client, error) {
 	if _, err := url.Parse(baseURL); err != nil {
 		return nil, fmt.Errorf("check baseURL: %w", err)
 	}
 
+	// 安全地确保 baseURL 末尾是 /api
+	baseURL, err := ensureAPIPath(baseURL)
+	if err != nil {
+		return nil, err
+	}
+
 	client := resty.New().SetBaseURL(baseURL)
 	client.SetRequestMiddlewares(
-		resty.PrepareRequestMiddleware,                   // 先调用，创建 RawRequest
-		PreRequestMiddleware(user, tokenID, tokenSecret), // 再调用，自定义中间
+		resty.PrepareRequestMiddleware, // 先调用，创建 RawRequest
+		PreRequestMiddleware(apiToken), // 再调用，自定义中间
 	)
 	client.SetResponseMiddlewares(
 		Ensure2xxResponseMiddleware,       // 先调用，判断状态是不是请求成功
@@ -44,4 +49,9 @@ func (c *Client) WithDebug() *Client {
 func (c *Client) WithSkipVerify() *Client {
 	c.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 	return c
+}
+
+// R 返回一个自定义的 Request，以便我们可以调用 SetBodyMap() SetBodyStruct() 解决因 body 顺序不同导致 SHA256 不一样的问题
+func (c *Client) R() *Request {
+	return &Request{c.Client.R()}
 }

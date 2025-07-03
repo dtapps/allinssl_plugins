@@ -118,11 +118,16 @@ func isWildcardHost(host string) bool {
 }
 
 // CanDomainsUseCert 判断指定域名是否被证书覆盖
-func (cb *CertBundle) CanDomainsUseCert(userDomains []string) bool {
-	for _, userDomain := range userDomains {
+func (cb *CertBundle) CanDomainsUseCert(domains []string) bool {
+	return CanDomainsUseCert(domains, cb.DNSNames)
+}
+
+// CanDomainsUseCert 判断指定域名是否能被 DNSNames 覆盖
+func CanDomainsUseCert(domains, dnsNames []string) bool {
+	for _, domain := range domains {
 		matched := false
-		for _, certDomain := range cb.DNSNames {
-			if userDomain == certDomain || matchWildcard(certDomain, userDomain) {
+		for _, certDomain := range dnsNames {
+			if domain == certDomain || matchWildcard(certDomain, domain) {
 				matched = true
 				break
 			}
