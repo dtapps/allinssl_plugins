@@ -1,5 +1,5 @@
 # 二进制文件名称
-BINARY_NAME := xp
+BINARY_NAME := xppanel
 
 build-linux-amd64:
 	@echo "打包 Linux （amd64架构） 版本"

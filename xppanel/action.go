@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/dtapps/allinssl_plugins/core"
-	"github.com/dtapps/allinssl_plugins/xp/openapi"
-	"github.com/dtapps/allinssl_plugins/xp/site"
+	"github.com/dtapps/allinssl_plugins/xppanel/openapi"
+	"github.com/dtapps/allinssl_plugins/xppanel/site"
 )
 
 // 部署到堡塔云WAF网站

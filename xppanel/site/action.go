@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/dtapps/allinssl_plugins/core"
-	"github.com/dtapps/allinssl_plugins/xp/openapi"
-	"github.com/dtapps/allinssl_plugins/xp/types"
+	"github.com/dtapps/allinssl_plugins/xppanel/openapi"
+	"github.com/dtapps/allinssl_plugins/xppanel/types"
 )
 
 // 域名绑定证书
@@ -16,9 +16,9 @@ func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertB
 	// 1. 获取域名列表
 	var queryDomainListResp types.CommonResponse[[]types.SiteQueryDomainListResponse]
 	_, err = openapiClient.R().
-		SetBody(map[string]any{
-			"p":         1,      // 页码
-			"p_size":    10,     // 每页数量
+		SetQueryParams(map[string]string{
+			"p":         "1",    // 页码
+			"p_size":    "100",  // 每页数量
 			"site_name": domain, // 域名
 		}).
 		SetResult(&queryDomainListResp).

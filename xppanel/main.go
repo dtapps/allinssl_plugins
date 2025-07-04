@@ -25,7 +25,7 @@ type Response struct {
 }
 
 var pluginMeta = map[string]any{
-	"name":        "aawaf",
+	"name":        "xppanel",
 	"description": "部署到小皮面板",
 	"version":     "1.0.0",
 	"author":      "dtapps",
