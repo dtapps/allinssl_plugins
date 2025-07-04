@@ -15,6 +15,7 @@ on:
           - synology
           - aawaf
           - safeline
+          - xp
       arch: # 架构选择输入
         description: "选择架构"
         required: true
