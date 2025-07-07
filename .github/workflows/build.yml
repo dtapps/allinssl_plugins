@@ -19,6 +19,7 @@ on:
           - ratpanel
           - lucky
           - uuwaf
+          - open_resty_manager
       arch: # 架构选择输入
         description: "选择架构"
         required: true
