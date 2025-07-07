@@ -22,6 +22,7 @@ AllinSSL 第三方插件库
 | 雷池 WAF            | 防护应用（API 更新接口不合理） | safeline            | 8.10.1    | ✅ 已测试，推荐用官方 |
 | 小皮面板            | 网站（API 接口不合理）         | xppanel             | 1.3.10    | ⚠️ 未测试，不推荐使用 |
 | Lucky               | SSL/TLS 证书                   | lucky               | 2.17.8    | ✅ 已测试             |
+| 南墙WEB应用防火墙               | 证书管理 / 网站证书                   | uuwaf               | 6.8.0 / 7.0.0   | ✅ 已测试             |
 
 ## 天翼云 使用示例
 
@@ -118,5 +119,19 @@ AllinSSL 第三方插件库
 {
   "url": "主机IP或域名，包含协议和端口加入口，http://example.com/xxx 或 http://0.0.0.0:16601/xxx",
   "open_token": "设置中心的OpenToken"
+}
+```
+
+## 南墙WEB应用防火墙 使用示例
+
+1. 将模块文件放入 AllinSSL 插件目录(plugins)
+2. 在 AllinSSL 后台「添加授权 API」选择 uuwaf 插件
+3. 配置参数（JSON 格式）：
+
+```json
+{
+  "url": "主机IP或域名，包含协议和端口，https://example.com/xxx 或 https://0.0.0.0:4443",
+  "username": "登录用户名",
+  "password": "登录密码"
 }
 ```

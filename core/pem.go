@@ -194,7 +194,7 @@ func (cb *CertBundle) GetNote() string {
 	return fmt.Sprintf("%s%s", notePrefix, fp)
 }
 
-// GetNoteShort 获取证书名字（缩短的，天翼云证书管理在使用）
+// GetNoteShort 获取证书名字（缩短的，天翼云、南墙WEB应用防火墙、Lucky证书管理在使用）
 func (cb *CertBundle) GetNoteShort() string {
 	fp := cb.GetFingerprintSHA256()
 	if len(fp) < 6 {

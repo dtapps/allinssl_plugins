@@ -25,18 +25,23 @@ type Response struct {
 }
 
 var pluginMeta = map[string]any{
-	"name":        "lucky",
-	"description": "部署到Lucky",
+	"name":        "uuwaf",
+	"description": "部署到南墙WEB应用防火墙",
 	"version":     "1.0.0",
 	"author":      "dtapps",
 	"config": map[string]any{
-		"url":        "主机IP或域名，包含协议和端口加入口，http://example.com/xxx 或 http://0.0.0.0:16601/xxx",
-		"open_token": "设置中心的OpenToken",
+		"url":      "南墙WEB应用防火墙 主机IP或域名，包含协议和端口，https://example.com 或 https://0.0.0.0:4443",
+		"username": "南墙WEB应用防火墙 登录用户名",
+		"password": "南墙WEB应用防火墙 登录密码",
 	},
 	"actions": []ActionInfo{
 		{
-			Name:        "certificates",
-			Description: "上传到 SSL/TLS证书",
+			Name:        "certificates_v6",
+			Description: "上传到 网站证书（V6版本）",
+		},
+		{
+			Name:        "certificates_v7",
+			Description: "上传到 网站证书（V7版本）",
 		},
 	},
 }
@@ -79,8 +84,15 @@ func main() {
 			Message: "支持的动作",
 			Result:  map[string]any{"actions": pluginMeta["actions"]},
 		})
-	case "certificates":
-		rep, err := deployCertificatesAction(req.Params)
+	case "certificates_v6":
+		rep, err := deployCertificatesAction(req.Params, "v6")
+		if err != nil {
+			outputError("上传证书到证书管理失败", err)
+			return
+		}
+		outputJSON(rep)
+	case "certificates_v7":
+		rep, err := deployCertificatesAction(req.Params, "v7")
 		if err != nil {
 			outputError("上传证书到证书管理失败", err)
 			return

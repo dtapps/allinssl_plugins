@@ -18,6 +18,7 @@ on:
           - xppanel
           - ratpanel
           - lucky
+          - uuwaf
       arch: # 架构选择输入
         description: "选择架构"
         required: true
