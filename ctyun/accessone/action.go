@@ -16,11 +16,13 @@ func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertB
 	// 1. 获取域名信息
 	var queryDomainInfoResp types.CommonResponse[types.AccessoneQueryDomainInfoResponse]
 	_, err = openapiClient.R().
-		SetQueryParam("product_code", productCode). // 产品类型
-		SetQueryParam("domain", domain).            // 域名
+		SetBodyMap(map[string]any{
+			"product_code": productCode, // 产品类型
+			"domain":       domain,      // 域名
+		}).
 		SetResult(&queryDomainInfoResp).
 		SetContentType("application/json").
-		Get("/ctapi/v1/accessone/domain/config")
+		Post("/ctapi/v1/accessone/domain/config")
 	if err != nil {
 		return false, fmt.Errorf("获取域名信息错误: %w", err)
 	}
@@ -43,9 +45,9 @@ func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertB
 	if err != nil {
 		return false, fmt.Errorf("查询证书信息错误: %w", err)
 	}
-	if queryCertInfoResp.StatusCode != types.StatusCodeSuccess {
-		return false, fmt.Errorf("查询证书信息失败: %s", queryCertInfoResp.Message)
-	}
+	// if queryCertInfoResp.StatusCode != types.StatusCodeSuccess {
+	// 	return false, fmt.Errorf("查询证书信息失败: %s", queryCertInfoResp.Message)
+	// }
 
 	// 4. 证书不存在就上传证书
 	if queryCertInfoResp.ReturnObj.Name != certBundle.GetNote() {

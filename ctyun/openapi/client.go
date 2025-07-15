@@ -1,6 +1,7 @@
 package openapi
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net/url"
 
@@ -38,6 +39,12 @@ func NewClient(endpoint string, accessKeyId string, secretAccessKey string) (*Cl
 // WithDebug 开启调试模式
 func (c *Client) WithDebug() *Client {
 	c.EnableDebug()
+	return c
+}
+
+// WithSkipVerify 跳过验证
+func (c *Client) WithSkipVerify() *Client {
+	c.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 	return c
 }
 

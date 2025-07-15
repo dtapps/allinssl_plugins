@@ -9,7 +9,7 @@ AllinSSL 第三方插件库
 | 天翼云              | CDN 加速                       | ctyun               |           | ✅ 已测试             |
 | 天翼云              | 全站加速                       | ctyun               |           | ✅ 已测试             |
 | 天翼云              | 证书管理                       | ctyun               |           | ✅ 已测试             |
-| 天翼云              | 边缘安全加速平台               | ctyun               |           | ⚠️ 未测试             |
+| 天翼云              | 边缘安全加速平台               | ctyun               |           | ✅ 已测试             |
 | Nginx Proxy Manager | SSL Certificates               | nginx_proxy_manager | 2.12.3    | ✅ 已测试             |
 | Nginx Proxy Manager | Proxy Hosts                    | nginx_proxy_manager | 2.12.3    | ✅ 已测试             |
 | Nginx Proxy Manager | Redirection Hosts              |                     |           | ❌ 计划中             |

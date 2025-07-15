@@ -43,9 +43,9 @@ func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertB
 	if err != nil {
 		return false, fmt.Errorf("查询证书信息错误: %w", err)
 	}
-	if queryCertInfoResp.StatusCode != types.StatusCodeSuccess {
-		return false, fmt.Errorf("查询证书信息失败: %s", queryCertInfoResp.Message)
-	}
+	// if queryCertInfoResp.StatusCode != types.StatusCodeSuccess {
+	// 	return false, fmt.Errorf("查询证书信息失败: %s", queryCertInfoResp.Message)
+	// }
 
 	// 4. 证书不存在就上传证书
 	if queryCertInfoResp.ReturnObj.Result.Name != certBundle.GetNote() {
