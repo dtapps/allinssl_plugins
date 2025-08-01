@@ -12,7 +12,7 @@ import (
 
 // 上传证书
 // isExist: 是否存在
-func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (isExist bool, err error) {
+func Action(openapiClient *openapi.Client, certBundle *core.CertBundle, as_default string) (isExist bool, err error) {
 
 	// 1. 获取证书列表
 	var certListResp types.CommonResponse[types.CertificateListResponse]
@@ -57,10 +57,12 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (isExist
 		SetQueryParam("version", "1").
 		SetQueryParam("method", "import").
 		SetFormData(map[string]string{
-			"desc": certBundle.GetNote(),
+			"desc":       certBundle.GetNote(), // 证书备注
+			"as_default": as_default,           //是否将证书设置为默认证书
 		}).
 		SetFileReader("cert", "certificate.pem", strings.NewReader(certBundle.Certificate)).
 		SetFileReader("key", "private_key.pem", strings.NewReader(certBundle.PrivateKey)).
+		SetFileReader("inter_cert", "ca_bundle.pem", strings.NewReader(certBundle.CertificateChain)).
 		SetResult(&certUpdateResp).
 		SetContentType("application/json").
 		SetForceResponseContentType("application/json").

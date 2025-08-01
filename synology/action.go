@@ -36,6 +36,16 @@ func deployCertificatesAction(cfg map[string]any) (*Response, error) {
 	if !ok || dsmPassword == "" {
 		return nil, fmt.Errorf("password is required and must be a string")
 	}
+	dsmAsDefault, _ := cfg["as_default"].(string)
+	if dsmAsDefault == "" {
+		dsmAsDefault = "false"
+	}
+	switch dsmAsDefault {
+	case "true":
+	case "false":
+	default:
+		return nil, fmt.Errorf("as_default must be boolean")
+	}
 
 	// 解析证书字符串
 	certBundle, err := core.ParseCertBundle([]byte(certStr), []byte(keyStr))
@@ -66,7 +76,7 @@ func deployCertificatesAction(cfg map[string]any) (*Response, error) {
 	openapiClient.WithToken()
 
 	// 上传证书
-	isExist, err := certificate.Action(openapiClient, certBundle)
+	isExist, err := certificate.Action(openapiClient, certBundle, dsmAsDefault)
 	if err != nil {
 		return nil, err
 	}
