@@ -67,7 +67,10 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (certID 
 	_, err = openapiClient.R().
 		SetFileReader("certificate", "certificate.pem", strings.NewReader(certBundle.Certificate)).
 		SetFileReader("certificate_key", "private_key.pem", strings.NewReader(certBundle.PrivateKey)).
-		Post(fmt.Sprintf("/nginx/certificates/%d/upload", certID))
+		SetPathParams(map[string]string{
+			"certID": fmt.Sprintf("%d", certID),
+		}).
+		Post("/nginx/certificates/{certID}/upload")
 	if err != nil {
 		err = fmt.Errorf("上传证书错误: %w", err)
 		return

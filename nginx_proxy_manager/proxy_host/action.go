@@ -43,8 +43,11 @@ func Action(openapiClient *openapi.Client, domain string, certID int, certBundle
 		SetBody(map[string]any{
 			"certificate_id": certID,
 		}).
+		SetPathParams(map[string]string{
+			"hostID": fmt.Sprintf("%d", hostID),
+		}).
 		SetContentType("application/json").
-		Put(fmt.Sprintf("/nginx/proxy-hosts/%d", hostID))
+		Put("/nginx/proxy-hosts/{hostID}")
 	if err != nil {
 		return hostID, fmt.Errorf("域名 %s 绑定证书错误: %w", domain, err)
 	}
