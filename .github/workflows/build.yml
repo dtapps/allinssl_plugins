@@ -156,7 +156,9 @@ jobs:
 
             此 Release 包含了针对所选模块和架构的打包文件。
 
-            👉 [查看更新日志](https://github.com/${{ github.repository }}/blob/${{ github.sha }}/${{ github.event.inputs.module }}/CHANGELOG.md)
+            👉 [查看支持](https://allinssl-plugins.dtapp.net/docs/module/${{ github.event.inputs.module }}/support)
+            👉 [查看安装](https://allinssl-plugins.dtapp.net/docs/module/${{ github.event.inputs.module }}/install)
+            👉 [查看更新日志](https://allinssl-plugins.dtapp.net/docs/module/${{ github.event.inputs.module }}/changelog)
           draft: false # 是否作为草稿发布 (true 为草稿，false 为正式发布)
           prerelease: false # 是否作为预发布版本 (true 为预发布，false 为正式发布)
           # 将下载的产物作为 Release 附件上传

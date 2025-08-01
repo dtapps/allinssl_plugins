@@ -27,7 +27,7 @@ type Response struct {
 var pluginMeta = map[string]any{
 	"name":        "aawaf",
 	"description": "部署到堡塔云WAF",
-	"version":     "1.0.0",
+	"version":     "1.0.1",
 	"author":      "dtapps",
 	"config": map[string]any{
 		"url":     "堡塔云WAF 主机IP或域名，包含协议和端口，https://example.com 或 https://0.0.0.0:8379",

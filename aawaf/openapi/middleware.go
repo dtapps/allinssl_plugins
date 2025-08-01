@@ -21,7 +21,6 @@ func PreRequestMiddleware(apiKey string) resty.RequestMiddleware {
 		token := md5String(fmt.Sprintf("%d%s", timestamp, md5AK))
 
 		// 设置请求头
-		// r.SetHeader("waf_api_key", apiKey)
 		r.SetHeader("waf_request_time", fmt.Sprintf("%d", timestamp))
 		r.SetHeader("waf_request_token", token)
 

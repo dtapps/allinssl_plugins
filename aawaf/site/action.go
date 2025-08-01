@@ -28,6 +28,9 @@ func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertB
 	if err != nil {
 		return false, fmt.Errorf("获取域名列表错误: %w", err)
 	}
+	if len(queryDomainListResp.Res.List) <= 0 {
+		return false, fmt.Errorf("没有找到匹配的域名: %s", domain)
+	}
 
 	// 2. 检查域名是否配置了现存证书
 	var siteID string
