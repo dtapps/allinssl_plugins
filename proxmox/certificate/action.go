@@ -16,11 +16,15 @@ import (
 func Action(openapiClient *openapi.Client, pveNode string, certBundle *core.CertBundle) (isExist bool, err error) {
 
 	// 1. 获取证书列表
+	// https://pve.proxmox.com/pve-docs/api-viewer/#/nodes/{node}/certificates/info
 	var certListResp types.CertificateListResponse
 	_, err = openapiClient.R().
+		SetPathParams(map[string]string{
+			"node": pveNode,
+		}).
 		SetResult(&certListResp).
 		SetContentType("application/json").
-		Get(fmt.Sprintf("/api2/json/nodes/%s/certificates/info", pveNode))
+		Get("/api2/json/nodes/{node}/certificates/info")
 	if err != nil {
 		return false, fmt.Errorf("获取证书列表错误: %w", err)
 	}
@@ -41,13 +45,17 @@ func Action(openapiClient *openapi.Client, pveNode string, certBundle *core.Cert
 	}
 
 	// 2. 上传证书
+	// https://pve.proxmox.com/pve-docs/api-viewer/#/nodes/{node}/certificates/custom
 	_, err = openapiClient.R().
 		SetBody(map[string]string{
 			"certificates": certBundle.Certificate,
 			"key":          certBundle.PrivateKey,
 		}).
+		SetPathParams(map[string]string{
+			"node": pveNode,
+		}).
 		SetContentType("application/json").
-		Post(fmt.Sprintf("/api2/json/nodes/%s/certificates/custom", pveNode))
+		Post("/api2/json/nodes/{node}/certificates/custom")
 	if err != nil {
 		return false, fmt.Errorf("上传证书错误: %w", err)
 	}
