@@ -1,6 +1,7 @@
 package openapi
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net/url"
 	"time"
@@ -51,6 +52,12 @@ func (c *Client) WithDebug() *Client {
 	return c
 }
 
+// WithSkipVerify 跳过验证
+func (c *Client) WithSkipVerify() *Client {
+	c.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+	return c
+}
+
 // WithLogin 登录
 func (c *Client) WithLogin() (*Client, error) {
 	if c.token != "" && c.tokenExp.After(time.Now()) {
@@ -87,6 +94,6 @@ func (c *Client) WithLogin() (*Client, error) {
 
 // WithDebug 设置令牌
 func (c *Client) WithToken() *Client {
-	c.SetHeader("Authorization", "Bearer "+c.token)
+	c.SetAuthToken(c.token)
 	return c
 }

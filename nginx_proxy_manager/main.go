@@ -45,6 +45,7 @@ var pluginMeta = map[string]any{
 		{
 			Name:        "certificates",
 			Description: "上传到 Nginx Proxy Manager SSL Certificates",
+			Params:      map[string]any{},
 		},
 	},
 }

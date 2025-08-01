@@ -38,10 +38,12 @@ var pluginMeta = map[string]any{
 		{
 			Name:        "certificates_v6",
 			Description: "上传到 网站证书（V6版本）",
+			Params:      map[string]any{},
 		},
 		{
 			Name:        "certificates_v7",
 			Description: "上传到 网站证书（V7版本）",
+			Params:      map[string]any{},
 		},
 	},
 }

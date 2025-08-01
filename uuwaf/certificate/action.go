@@ -24,7 +24,7 @@ func V6Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (isExi
 	}
 	for _, certInfo := range certListResp {
 		if certInfo.Cert != "" && certInfo.Key != "" && certInfo.Sni != "" {
-			if certBundle.IsDNSNamesMatch(certInfo.ParseDomains()) {
+			if certBundle.IsDNSNamesMatch(certInfo.ParseSni()) {
 				// 获取接口证书信息
 				apiCertBundle, err := core.ParseCertBundle([]byte(certInfo.Cert), []byte(certInfo.Key))
 				if err != nil {
@@ -90,7 +90,7 @@ func V7Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (isExi
 	}
 	for _, certInfo := range certListResp {
 		if certInfo.Crt != "" && certInfo.Key != "" && certInfo.Sni != "" {
-			if certBundle.IsDNSNamesMatch(certInfo.ParseDomains()) {
+			if certBundle.IsDNSNamesMatch(certInfo.ParseSni()) {
 				// 获取接口证书信息
 				apiCertBundle, err := core.ParseCertBundle([]byte(certInfo.Crt), []byte(certInfo.Key))
 				if err != nil {

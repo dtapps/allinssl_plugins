@@ -58,6 +58,7 @@ var pluginMeta = map[string]any{
 		{
 			Name:        "ccms",
 			Description: "上传到天翼云证书管理",
+			Params:      map[string]any{},
 		},
 	},
 }

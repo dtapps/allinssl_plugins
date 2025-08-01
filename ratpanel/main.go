@@ -45,6 +45,7 @@ var pluginMeta = map[string]any{
 		{
 			Name:        "certificates",
 			Description: "上传到证书管理",
+			Params:      map[string]any{},
 		},
 	},
 }

@@ -37,6 +37,7 @@ var pluginMeta = map[string]any{
 		{
 			Name:        "certificates",
 			Description: "上传到 SSL/TLS证书",
+			Params:      map[string]any{},
 		},
 	},
 }

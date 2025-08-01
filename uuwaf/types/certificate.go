@@ -11,8 +11,8 @@ type CertificateListV6Response struct {
 	Key  string `json:"key"`  // 证书私钥
 }
 
-// ParseDomains 将 Domains 字符串解析为字符串切片
-func (c CertificateListV6Response) ParseDomains() []string {
+// ParseSni 将 Sni 字符串解析为字符串切片
+func (c CertificateListV6Response) ParseSni() []string {
 	var domains []string
 	_ = json.Unmarshal([]byte(c.Sni), &domains)
 	return domains
@@ -27,8 +27,8 @@ type CertificateListV7Response struct {
 	Key  string `json:"key"`  // 证书私钥
 }
 
-// ParseDomains 将 Domains 字符串解析为字符串切片
-func (c CertificateListV7Response) ParseDomains() []string {
+// ParseSni 将 Sni 字符串解析为字符串切片
+func (c CertificateListV7Response) ParseSni() []string {
 	var domains []string
 	_ = json.Unmarshal([]byte(c.Sni), &domains)
 	return domains
