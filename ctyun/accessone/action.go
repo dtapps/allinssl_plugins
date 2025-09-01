@@ -24,10 +24,10 @@ func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertB
 		SetContentType("application/json").
 		Post("/ctapi/v1/accessone/domain/config")
 	if err != nil {
-		return false, fmt.Errorf("获取域名信息错误: %w", err)
+		return false, fmt.Errorf("获取 %s 域名信息错误: %w", domain, err)
 	}
 	if queryDomainInfoResp.StatusCode != types.StatusCodeSuccess {
-		return false, fmt.Errorf("获取域名信息失败: %s", queryDomainInfoResp.Message)
+		return false, fmt.Errorf("获取 %s 域名信息失败: %s", domain, queryDomainInfoResp.Message)
 	}
 
 	// 2. 检查域名是否配置了现存证书
