@@ -27,7 +27,7 @@ type Response struct {
 var pluginMeta = map[string]any{
 	"name":        "ctyun",
 	"description": "部署到天翼云",
-	"version":     "1.0.5",
+	"version":     "1.0.6",
 	"author":      "dtapps",
 	"config": map[string]any{
 		"access_key": "天翼云 AccessKey",

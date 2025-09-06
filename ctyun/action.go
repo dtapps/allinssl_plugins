@@ -47,10 +47,11 @@ func deployCdnAction(cfg map[string]any) (*Response, error) {
 	}
 
 	// 验证证书链
+	var verifyChainText string
 	if err := certBundle.VerifyChain(); err != nil {
-		fmt.Println("❌ 证书链不完整或不被信任:", err)
+		verifyChainText = "❌ 证书链不完整或不被信任:" + err.Error()
 	} else {
-		fmt.Println("✅ 证书链完整有效")
+		verifyChainText = "✅ 证书链完整有效"
 	}
 
 	// 1. 检查证书是否过期
@@ -85,8 +86,9 @@ func deployCdnAction(cfg map[string]any) (*Response, error) {
 		Status:  "success",
 		Message: "更新域名证书成功",
 		Result: map[string]any{
-			"domain": ctDomain,
-			"cert":   certBundle,
+			"domain":      ctDomain,
+			"cert":        certBundle,
+			"verifyChain": verifyChainText,
 		},
 	}, nil
 }
@@ -126,10 +128,11 @@ func deployIcdnAction(cfg map[string]any) (*Response, error) {
 	}
 
 	// 验证证书链
+	var verifyChainText string
 	if err := certBundle.VerifyChain(); err != nil {
-		fmt.Println("❌ 证书链不完整或不被信任:", err)
+		verifyChainText = "❌ 证书链不完整或不被信任:" + err.Error()
 	} else {
-		fmt.Println("✅ 证书链完整有效")
+		verifyChainText = "✅ 证书链完整有效"
 	}
 
 	// 1. 检查证书是否过期
@@ -164,8 +167,9 @@ func deployIcdnAction(cfg map[string]any) (*Response, error) {
 		Status:  "success",
 		Message: "更新域名证书成功",
 		Result: map[string]any{
-			"domain": ctDomain,
-			"cert":   certBundle,
+			"domain":      ctDomain,
+			"cert":        certBundle,
+			"verifyChain": verifyChainText,
 		},
 	}, nil
 }
@@ -205,10 +209,11 @@ func deployAccessoneAction(cfg map[string]any) (*Response, error) {
 	}
 
 	// 验证证书链
+	var verifyChainText string
 	if err := certBundle.VerifyChain(); err != nil {
-		fmt.Println("❌ 证书链不完整或不被信任:", err)
+		verifyChainText = "❌ 证书链不完整或不被信任:" + err.Error()
 	} else {
-		fmt.Println("✅ 证书链完整有效")
+		verifyChainText = "✅ 证书链完整有效"
 	}
 
 	// 1. 检查证书是否过期
@@ -243,8 +248,9 @@ func deployAccessoneAction(cfg map[string]any) (*Response, error) {
 		Status:  "success",
 		Message: "更新域名证书成功",
 		Result: map[string]any{
-			"domain": ctDomain,
-			"cert":   certBundle,
+			"domain":      ctDomain,
+			"cert":        certBundle,
+			"verifyChain": verifyChainText,
 		},
 	}, nil
 }
@@ -280,10 +286,11 @@ func deployCcmsAction(cfg map[string]any) (*Response, error) {
 	}
 
 	// 验证证书链
+	var verifyChainText string
 	if err := certBundle.VerifyChain(); err != nil {
-		fmt.Println("❌ 证书链不完整或不被信任:", err)
+		verifyChainText = "❌ 证书链不完整或不被信任:" + err.Error()
 	} else {
-		fmt.Println("✅ 证书链完整有效")
+		verifyChainText = "✅ 证书链完整有效"
 	}
 
 	// 1. 检查证书是否过期
@@ -308,7 +315,8 @@ func deployCcmsAction(cfg map[string]any) (*Response, error) {
 			Status:  "success",
 			Message: "证书已存在",
 			Result: map[string]any{
-				"cert": certBundle,
+				"cert":        certBundle,
+				"verifyChain": verifyChainText,
 			},
 		}, nil
 	}
@@ -317,7 +325,8 @@ func deployCcmsAction(cfg map[string]any) (*Response, error) {
 		Status:  "success",
 		Message: "上传证书成功",
 		Result: map[string]any{
-			"cert": certBundle,
+			"cert":        certBundle,
+			"verifyChain": verifyChainText,
 		},
 	}, nil
 }
