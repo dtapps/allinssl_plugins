@@ -252,6 +252,11 @@ func (cb *CertBundle) VerifyChain() error {
 	return nil
 }
 
+// IsChainValid 检查证书链是否完整、有效，返回 true 或 false
+func (cb *CertBundle) IsChainValid() bool {
+	return cb.VerifyChain() == nil
+}
+
 // BuildCertsForAPI 组合第三方接口需要的 key 和 certs
 func BuildCertsForAPI(certBundle *CertBundle) (key, certs string) {
 	key = certBundle.PrivateKey
