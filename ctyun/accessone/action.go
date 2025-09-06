@@ -27,7 +27,7 @@ func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertB
 		return false, fmt.Errorf("获取 %s 域名信息错误: %w", domain, err)
 	}
 	if queryDomainInfoResp.StatusCode != types.StatusCodeSuccess {
-		return false, fmt.Errorf("获取 %s 域名信息失败: %s", domain, queryDomainInfoResp.Message)
+		return false, fmt.Errorf("获取 %s 域名信息失败:%s ; %s", domain, queryDomainInfoResp.Message, queryDomainInfoResp.ErrorMessage)
 	}
 
 	// 2. 检查域名是否配置了现存证书
@@ -45,13 +45,10 @@ func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertB
 	if err != nil {
 		return false, fmt.Errorf("查询证书信息错误: %w", err)
 	}
-	// if queryCertInfoResp.StatusCode != types.StatusCodeSuccess {
-	// 	return false, fmt.Errorf("查询证书信息失败: %s", queryCertInfoResp.Message)
-	// }
 
 	// 4. 证书不存在就上传证书
 	if queryCertInfoResp.ReturnObj.Name != certBundle.GetNoteShort() {
-		certificate, privateKey := core.BuildCertsForAPI(certBundle)
+		privateKey, certificate := core.BuildCertsForAPI(certBundle)
 		var updateCertInfoResp types.CommonResponse[types.AccessoneUpdateCertInfoResponse]
 		_, err = openapiClient.R().
 			SetBodyMap(map[string]any{
@@ -66,7 +63,7 @@ func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertB
 			return false, fmt.Errorf("上传证书错误: %w", err)
 		}
 		if updateCertInfoResp.StatusCode != types.StatusCodeSuccess {
-			return false, fmt.Errorf("上传证书失败: %s", updateCertInfoResp.Message)
+			return false, fmt.Errorf("上传证书失败: %s ; %s", updateCertInfoResp.Message, updateCertInfoResp.ErrorMessage)
 		}
 	}
 
@@ -85,7 +82,7 @@ func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertB
 		return false, fmt.Errorf("更新域名信息错误: %w", err)
 	}
 	if updateDomainInfoResp.StatusCode != types.StatusCodeSuccess {
-		return false, fmt.Errorf("更新域名信息失败: %s", updateDomainInfoResp.Message)
+		return false, fmt.Errorf("更新域名信息失败:%s ; %s", updateDomainInfoResp.Message, updateDomainInfoResp.ErrorMessage)
 	}
 
 	return false, nil
