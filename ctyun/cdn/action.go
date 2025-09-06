@@ -29,14 +29,14 @@ func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertB
 	}
 
 	// 2. 检查域名是否配置了现存证书
-	if queryDomainInfoResp.ReturnObj.CertName == certBundle.GetNote() {
+	if queryDomainInfoResp.ReturnObj.CertName == certBundle.GetNoteShort() {
 		return true, nil
 	}
 
 	// 3. 查询证书信息
 	var queryCertInfoResp types.CommonResponse[types.CdnQueryCertInfoResponse]
 	_, err = openapiClient.R().
-		SetQueryParam("name", certBundle.GetNote()). // 证书备注名
+		SetQueryParam("name", certBundle.GetNoteShort()). // 证书备注名
 		SetResult(&queryCertInfoResp).
 		SetContentType("application/json").
 		Get("/v1/cert/query-cert-detail")
@@ -48,13 +48,14 @@ func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertB
 	// }
 
 	// 4. 证书不存在就上传证书
-	if queryCertInfoResp.ReturnObj.Result.Name != certBundle.GetNote() {
+	if queryCertInfoResp.ReturnObj.Result.Name != certBundle.GetNoteShort() {
+		certificate, privateKey := core.BuildCertsForAPI(certBundle)
 		var updateCertInfoResp types.CommonResponse[types.CdnUpdateCertInfoResponse]
 		_, err = openapiClient.R().
 			SetBodyMap(map[string]any{
-				"name":  certBundle.GetNote(),   // 证书备注名
-				"key":   certBundle.PrivateKey,  // 证书私钥
-				"certs": certBundle.Certificate, // 证书公钥
+				"name":  certBundle.GetNoteShort(), // 证书备注名
+				"key":   privateKey,                // 证书私钥
+				"certs": certificate,               // 证书公钥
 			}).
 			SetResult(&updateCertInfoResp).
 			SetContentType("application/json").
@@ -71,9 +72,9 @@ func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertB
 	var updateDomainInfoResp types.CommonResponse[any]
 	_, err = openapiClient.R().
 		SetBodyMap(map[string]any{
-			"domain":       domain,               // 域名
-			"product_code": productCode,          // 产品类型
-			"cert_name":    certBundle.GetNote(), // 证书备注名
+			"domain":       domain,                    // 域名
+			"product_code": productCode,               // 产品类型
+			"cert_name":    certBundle.GetNoteShort(), // 证书备注名
 		}).
 		SetResult(&updateDomainInfoResp).
 		SetContentType("application/json").

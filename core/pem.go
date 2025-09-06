@@ -189,12 +189,14 @@ func (cb *CertBundle) IsDNSNamesMatch(domains []string) bool {
 const notePrefix = "allinssl-"
 
 // GetNote 获取证书名字
+// 旧的
 func (cb *CertBundle) GetNote() string {
 	fp := cb.GetFingerprintSHA256()
 	return fmt.Sprintf("%s%s", notePrefix, fp)
 }
 
 // GetNoteShort 获取证书名字（缩短的，天翼云、南墙WEB应用防火墙、Lucky证书管理在使用）
+// 新的
 func (cb *CertBundle) GetNoteShort() string {
 	fp := cb.GetFingerprintSHA256()
 	if len(fp) < 6 {

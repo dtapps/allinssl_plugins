@@ -46,6 +46,13 @@ func deployCdnAction(cfg map[string]any) (*Response, error) {
 		return nil, fmt.Errorf("failed to parse cert bundle: %w", err)
 	}
 
+	// 验证证书链
+	if err := certBundle.VerifyChain(); err != nil {
+		fmt.Println("❌ 证书链不完整或不被信任:", err)
+	} else {
+		fmt.Println("✅ 证书链完整有效")
+	}
+
 	// 1. 检查证书是否过期
 	if certBundle.IsExpired() {
 		return nil, fmt.Errorf("证书已过期 %s", certBundle.NotAfter.Format(time.DateTime))
@@ -116,6 +123,13 @@ func deployIcdnAction(cfg map[string]any) (*Response, error) {
 	certBundle, err := core.ParseCertBundle([]byte(certStr), []byte(keyStr))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse cert bundle: %w", err)
+	}
+
+	// 验证证书链
+	if err := certBundle.VerifyChain(); err != nil {
+		fmt.Println("❌ 证书链不完整或不被信任:", err)
+	} else {
+		fmt.Println("✅ 证书链完整有效")
 	}
 
 	// 1. 检查证书是否过期
@@ -190,6 +204,13 @@ func deployAccessoneAction(cfg map[string]any) (*Response, error) {
 		return nil, fmt.Errorf("failed to parse cert bundle: %w", err)
 	}
 
+	// 验证证书链
+	if err := certBundle.VerifyChain(); err != nil {
+		fmt.Println("❌ 证书链不完整或不被信任:", err)
+	} else {
+		fmt.Println("✅ 证书链完整有效")
+	}
+
 	// 1. 检查证书是否过期
 	if certBundle.IsExpired() {
 		return nil, fmt.Errorf("证书已过期 %s", certBundle.NotAfter.Format(time.DateTime))
@@ -252,10 +273,17 @@ func deployCcmsAction(cfg map[string]any) (*Response, error) {
 		return nil, fmt.Errorf("secret_key is required and must be a string")
 	}
 
-	// 1. 解析证书字符串
+	// 解析证书字符串
 	certBundle, err := core.ParseCertBundle([]byte(certStr), []byte(keyStr))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse cert bundle: %w", err)
+	}
+
+	// 验证证书链
+	if err := certBundle.VerifyChain(); err != nil {
+		fmt.Println("❌ 证书链不完整或不被信任:", err)
+	} else {
+		fmt.Println("✅ 证书链完整有效")
 	}
 
 	// 1. 检查证书是否过期

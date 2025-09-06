@@ -50,10 +50,11 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (isExist
 	var certUpdateResp types.CommonResponse[any]
 	_, err = openapiClient.R().
 		SetBodyMap(map[string]any{
-			"name":               certBundle.GetNoteShort(), // 证书名称
-			"certificate":        certBundle.Certificate,    // 证书字符串
-			"privateKey":         certBundle.PrivateKey,     // 私钥字符串
-			"encryptionStandard": "INTERNATIONAL",           // 加密标准
+			"name":               certBundle.GetNoteShort(),   // 证书名称
+			"certificate":        certBundle.Certificate,      // 证书字符串
+			"privateKey":         certBundle.PrivateKey,       // 私钥字符串
+			"certificateChain":   certBundle.CertificateChain, // 证书链字符串
+			"encryptionStandard": "INTERNATIONAL",             // 加密标准
 		}).
 		SetResult(&certUpdateResp).
 		SetContentType("application/json").
