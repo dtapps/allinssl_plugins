@@ -202,3 +202,64 @@ func (cb *CertBundle) GetNoteShort() string {
 	}
 	return fmt.Sprintf("%s%s", notePrefix, fp[:6])
 }
+
+// VerifyChain 检查证书链是否完整、有效
+func (cb *CertBundle) VerifyChain() error {
+	// 解析主证书
+	cert, err := x509.ParseCertificate(cb.certRaw)
+	if err != nil {
+		return fmt.Errorf("failed to parse main certificate: %w", err)
+	}
+
+	// 构造中间证书池
+	intermediates := x509.NewCertPool()
+	if cb.CertificateChain != "" {
+		rest := []byte(cb.CertificateChain)
+		for {
+			var block *pem.Block
+			block, rest = pem.Decode(rest)
+			if block == nil {
+				break
+			}
+			if block.Type != "CERTIFICATE" {
+				continue
+			}
+			ic, err := x509.ParseCertificate(block.Bytes)
+			if err != nil {
+				continue
+			}
+			intermediates.AddCert(ic)
+		}
+	}
+
+	// 系统根证书
+	roots, err := x509.SystemCertPool()
+	if err != nil {
+		return fmt.Errorf("failed to load system root CAs: %w", err)
+	}
+
+	opts := x509.VerifyOptions{
+		Intermediates: intermediates,
+		Roots:         roots,
+	}
+
+	// 验证链
+	if _, err := cert.Verify(opts); err != nil {
+		return fmt.Errorf("certificate chain is invalid: %w", err)
+	}
+	return nil
+}
+
+// BuildCertsForAPI 组合第三方接口需要的 key 和 certs
+func BuildCertsForAPI(certBundle *CertBundle) (key, certs string) {
+	key = certBundle.PrivateKey
+
+	// certs = 主证书 + 中间证书链
+	if certBundle.CertificateChain != "" {
+		certs = certBundle.Certificate + "\n" + certBundle.CertificateChain
+	} else {
+		certs = certBundle.Certificate
+	}
+
+	return key, certs
+}
