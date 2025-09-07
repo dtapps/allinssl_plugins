@@ -10,7 +10,7 @@ import (
 )
 
 // 上传证书到证书管理
-func deployCertificatesAction(cfg map[string]any) (*Response, error) {
+func deployCertificatesAction(cfg map[string]any) (*core.Response, error) {
 
 	if cfg == nil {
 		return nil, fmt.Errorf("config cannot be nil")
@@ -58,20 +58,20 @@ func deployCertificatesAction(cfg map[string]any) (*Response, error) {
 		return nil, err
 	}
 	if isExist {
-		return &Response{
+		return &core.Response{
 			Status:  "success",
 			Message: "证书已存在",
 			Result: map[string]any{
-				"cert": certBundle,
+				"cert": certBundle.ResultInfo(),
 			},
 		}, nil
 	}
 
-	return &Response{
+	return &core.Response{
 		Status:  "success",
 		Message: "上传证书成功",
 		Result: map[string]any{
-			"cert": certBundle,
+			"cert": certBundle.ResultInfo(),
 		},
 	}, nil
 }

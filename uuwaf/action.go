@@ -10,7 +10,7 @@ import (
 )
 
 // 上传证书到证书管理
-func deployCertificatesAction(cfg map[string]any, apiVersion string) (*Response, error) {
+func deployCertificatesAction(cfg map[string]any, apiVersion string) (*core.Response, error) {
 
 	if cfg == nil {
 		return nil, fmt.Errorf("config cannot be nil")
@@ -73,11 +73,11 @@ func deployCertificatesAction(cfg map[string]any, apiVersion string) (*Response,
 			return nil, err
 		}
 		if isExist {
-			return &Response{
+			return &core.Response{
 				Status:  "success",
 				Message: "证书已存在",
 				Result: map[string]any{
-					"cert": certBundle,
+					"cert": certBundle.ResultInfo(),
 				},
 			}, nil
 		}
@@ -93,11 +93,11 @@ func deployCertificatesAction(cfg map[string]any, apiVersion string) (*Response,
 			return nil, err
 		}
 		if isExist {
-			return &Response{
+			return &core.Response{
 				Status:  "success",
 				Message: "证书已存在",
 				Result: map[string]any{
-					"cert": certBundle,
+					"cert": certBundle.ResultInfo(),
 				},
 			}, nil
 		}
@@ -106,11 +106,11 @@ func deployCertificatesAction(cfg map[string]any, apiVersion string) (*Response,
 		return nil, fmt.Errorf("不支持的 API 版本: %s", apiVersion)
 	}
 
-	return &Response{
+	return &core.Response{
 		Status:  "success",
 		Message: "上传证书成功",
 		Result: map[string]any{
-			"cert": certBundle,
+			"cert": certBundle.ResultInfo(),
 		},
 	}, nil
 }

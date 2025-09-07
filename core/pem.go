@@ -270,3 +270,14 @@ func BuildCertsForAPI(certBundle *CertBundle) (key, certs string) {
 
 	return key, certs
 }
+
+// 证书信息
+func (cb *CertBundle) ResultInfo() map[string]any {
+	return map[string]any{
+		"serialNumber": cb.SerialNumber,                    // 证书序列号
+		"notBefore":    cb.NotBefore.Format(time.DateTime), // 证书生效时间
+		"notAfter":     cb.NotAfter.Format(time.DateTime),  // 证书过期时间
+		"dnsNames":     cb.DNSNames,                        // 域名列表
+		"verifyChain":  cb.IsChainValid(),                  // 证书链是否完整
+	}
+}

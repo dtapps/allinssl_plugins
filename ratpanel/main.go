@@ -1,28 +1,8 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"io"
-	"os"
+	"github.com/dtapps/allinssl_plugins/core"
 )
-
-type ActionInfo struct {
-	Name        string         `json:"name"`
-	Description string         `json:"description"`
-	Params      map[string]any `json:"params,omitempty"` // 可选参数
-}
-
-type Request struct {
-	Action string         `json:"action"`
-	Params map[string]any `json:"params"`
-}
-
-type Response struct {
-	Status  string         `json:"status"`
-	Message string         `json:"message"`
-	Result  map[string]any `json:"result"`
-}
 
 var pluginMeta = map[string]any{
 	"name":        "ratpanel",
@@ -34,7 +14,7 @@ var pluginMeta = map[string]any{
 		"user_id":    "用户序号",
 		"user_token": "用户令牌",
 	},
-	"actions": []ActionInfo{
+	"actions": []core.ActionInfo{
 		{
 			Name:        "site",
 			Description: "部署到网站",
@@ -50,60 +30,37 @@ var pluginMeta = map[string]any{
 	},
 }
 
-func outputJSON(resp *Response) {
-	_ = json.NewEncoder(os.Stdout).Encode(resp)
-}
-
-func outputError(msg string, err error) {
-	outputJSON(&Response{
-		Status:  "error",
-		Message: fmt.Sprintf("%s: %v", msg, err),
-	})
-}
-
 func main() {
-
-	var req Request
-	input, err := io.ReadAll(os.Stdin)
+	req, err := core.ReadRequest()
 	if err != nil {
-		outputError("读取输入失败", err)
+		core.OutputError("请求处理失败", err)
 		return
 	}
 
-	if err := json.Unmarshal(input, &req); err != nil {
-		outputError("解析请求失败", err)
+	// 处理标准动作
+	if core.HandleStandardActions(req, pluginMeta) {
 		return
 	}
 
+	// 处理插件特有动作
 	switch req.Action {
-	case "get_metadata":
-		outputJSON(&Response{
-			Status:  "success",
-			Message: "插件信息",
-			Result:  pluginMeta,
-		})
-	case "list_actions":
-		outputJSON(&Response{
-			Status:  "success",
-			Message: "支持的动作",
-			Result:  map[string]any{"actions": pluginMeta["actions"]},
-		})
+
 	case "site":
 		rep, err := deploySiteAction(req.Params)
 		if err != nil {
-			outputError("网站 部署失败", err)
+			core.OutputError("部署到网站 失败", err)
 			return
 		}
-		outputJSON(rep)
+		core.OutputJSON(rep)
 	case "certificates":
 		rep, err := deployCertificatesAction(req.Params)
 		if err != nil {
-			outputError("网站 部署失败", err)
+			core.OutputError("上传到证书管理 失败", err)
 			return
 		}
-		outputJSON(rep)
+		core.OutputJSON(rep)
 	default:
-		outputJSON(&Response{
+		core.OutputJSON(&core.Response{
 			Status:  "error",
 			Message: "未知 action: " + req.Action,
 		})

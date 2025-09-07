@@ -13,7 +13,7 @@ import (
 )
 
 // 部署到天翼云CDN加速
-func deployCdnAction(cfg map[string]any) (*Response, error) {
+func deployCdnAction(cfg map[string]any) (*core.Response, error) {
 
 	if cfg == nil {
 		return nil, fmt.Errorf("config cannot be nil")
@@ -74,19 +74,18 @@ func deployCdnAction(cfg map[string]any) (*Response, error) {
 		}
 	}
 
-	return &Response{
+	return &core.Response{
 		Status:  "success",
 		Message: "更新域名证书成功",
 		Result: map[string]any{
-			"domain":      ctDomain,
-			"cert":        certBundle,
-			"verifyChain": certBundle.IsChainValid(),
+			"domain": ctDomain,
+			"cert":   certBundle.ResultInfo(),
 		},
 	}, nil
 }
 
 // 部署到天翼云全站加速
-func deployIcdnAction(cfg map[string]any) (*Response, error) {
+func deployIcdnAction(cfg map[string]any) (*core.Response, error) {
 
 	if cfg == nil {
 		return nil, fmt.Errorf("config cannot be nil")
@@ -147,19 +146,18 @@ func deployIcdnAction(cfg map[string]any) (*Response, error) {
 		}
 	}
 
-	return &Response{
+	return &core.Response{
 		Status:  "success",
 		Message: "更新域名证书成功",
 		Result: map[string]any{
-			"domain":      ctDomain,
-			"cert":        certBundle,
-			"verifyChain": certBundle.IsChainValid(),
+			"domain": ctDomain,
+			"cert":   certBundle.ResultInfo(),
 		},
 	}, nil
 }
 
 // 部署到天翼云边缘安全加速平台
-func deployAccessoneAction(cfg map[string]any) (*Response, error) {
+func deployAccessoneAction(cfg map[string]any) (*core.Response, error) {
 
 	if cfg == nil {
 		return nil, fmt.Errorf("config cannot be nil")
@@ -220,19 +218,18 @@ func deployAccessoneAction(cfg map[string]any) (*Response, error) {
 		}
 	}
 
-	return &Response{
+	return &core.Response{
 		Status:  "success",
 		Message: "更新域名证书成功",
 		Result: map[string]any{
-			"domain":      ctDomain,
-			"cert":        certBundle,
-			"verifyChain": certBundle.IsChainValid(),
+			"domain": ctDomain,
+			"cert":   certBundle.ResultInfo(),
 		},
 	}, nil
 }
 
 // 上传证书到天翼云证书管理
-func deployCcmsAction(cfg map[string]any) (*Response, error) {
+func deployCcmsAction(cfg map[string]any) (*core.Response, error) {
 
 	if cfg == nil {
 		return nil, fmt.Errorf("config cannot be nil")
@@ -279,22 +276,20 @@ func deployCcmsAction(cfg map[string]any) (*Response, error) {
 		return nil, err
 	}
 	if isExist {
-		return &Response{
+		return &core.Response{
 			Status:  "success",
 			Message: "证书已存在",
 			Result: map[string]any{
-				"cert":        certBundle,
-				"verifyChain": certBundle.IsChainValid(),
+				"cert": certBundle.ResultInfo(),
 			},
 		}, nil
 	}
 
-	return &Response{
+	return &core.Response{
 		Status:  "success",
 		Message: "上传证书成功",
 		Result: map[string]any{
-			"cert":        certBundle,
-			"verifyChain": certBundle.IsChainValid(),
+			"cert": certBundle.ResultInfo(),
 		},
 	}, nil
 }

@@ -10,7 +10,7 @@ import (
 )
 
 // 部署到堡塔云WAF网站
-func deploySiteAction(cfg map[string]any) (*Response, error) {
+func deploySiteAction(cfg map[string]any) (*core.Response, error) {
 
 	if cfg == nil {
 		return nil, fmt.Errorf("config cannot be nil")
@@ -72,12 +72,12 @@ func deploySiteAction(cfg map[string]any) (*Response, error) {
 		}
 	}
 
-	return &Response{
+	return &core.Response{
 		Status:  "success",
 		Message: "更新域名证书成功",
 		Result: map[string]any{
 			"domain": xpDomain,
-			"cert":   certBundle,
+			"cert":   certBundle.ResultInfo(),
 		},
 	}, nil
 }

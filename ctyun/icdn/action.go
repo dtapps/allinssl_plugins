@@ -11,6 +11,10 @@ import (
 // 域名绑定证书
 // domain: 域名
 // isBind: 是否已绑定
+// 查询域名配置信息 https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=112&api=10849&data=173&isNormal=1&vid=166
+// 查询证书详情 https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=112&api=10837&data=173&isNormal=1&vid=166
+// 创建证书 https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=112&api=10835&data=173&isNormal=1&vid=166
+// 增量修改域名配置 https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=112&api=10853&data=173&isNormal=1&vid=166
 func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertBundle) (isBound bool, err error) {
 
 	// 1. 获取域名信息

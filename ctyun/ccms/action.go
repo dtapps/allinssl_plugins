@@ -12,6 +12,8 @@ import (
 
 // 上传证书
 // isExist: 是否已存在
+// 查询用户证书列表 https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=152&api=17233&data=204&isNormal=1&vid=283
+// 上传证书 https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=152&api=17243&data=204&isNormal=1&vid=283
 func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (isExist bool, err error) {
 
 	// 1. 获取证书列表
