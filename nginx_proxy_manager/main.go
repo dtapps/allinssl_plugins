@@ -7,7 +7,7 @@ import (
 var pluginMeta = map[string]any{
 	"name":        "nginx_proxy_manager",
 	"description": "部署到Nginx Proxy Manager",
-	"version":     "1.0.4",
+	"version":     "1.0.5",
 	"author":      "dtapps",
 	"config": map[string]any{
 		"url":      "Nginx Proxy Manager 主机IP或域名，包含协议和端口，http://example.com 或 http://0.0.0.0:81",

@@ -1,5 +1,6 @@
-.PHONY: mod
+.PHONY: go_update
 
-mod:
+go_update:
+	go version
 	go get -u -v ./...
 	go mod tidy

@@ -19,7 +19,6 @@ func Action(openapiClient *openapi.Client, domain string, certID int, certBundle
 	var proxyHostsListResp []types.ProxyHostListResponse
 	_, err = openapiClient.R().
 		SetResult(&proxyHostsListResp).
-		SetContentType("application/json").
 		Get("/nginx/proxy-hosts")
 	if err != nil {
 		return 0, fmt.Errorf("获取域名列表错误: %w", err)
@@ -46,7 +45,6 @@ func Action(openapiClient *openapi.Client, domain string, certID int, certBundle
 		SetPathParams(map[string]string{
 			"hostID": fmt.Sprintf("%d", hostID),
 		}).
-		SetContentType("application/json").
 		Put("/nginx/proxy-hosts/{hostID}")
 	if err != nil {
 		return hostID, fmt.Errorf("域名 %s 绑定证书错误: %w", domain, err)

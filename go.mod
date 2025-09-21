@@ -1,10 +1,10 @@
 module github.com/dtapps/allinssl_plugins
 
-go 1.24
+go 1.24.0
 
 require (
 	github.com/google/uuid v1.6.0
 	resty.dev/v3 v3.0.0-beta.3
 )
 
-require golang.org/x/net v0.43.0 // indirect
+require golang.org/x/net v0.44.0 // indirect

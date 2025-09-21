@@ -19,7 +19,6 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (certID 
 	var certListResp []types.CertificateListResponse
 	_, err = openapiClient.R().
 		SetResult(&certListResp).
-		SetContentType("application/json").
 		Get("/nginx/certificates")
 	if err != nil {
 		return 0, false, fmt.Errorf("获取证书列表错误: %w", err)
@@ -42,7 +41,11 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (certID 
 					// 证书已存在
 					return certInfo.ID, true, nil
 				}
+			} else {
+				certID = 0
 			}
+		} else {
+			certID = 0
 		}
 	}
 
@@ -55,7 +58,6 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (certID 
 				"nice_name": certBundle.GetNote(),
 			}).
 			SetResult(&certCreateResp).
-			SetContentType("application/json").
 			Post("/nginx/certificates")
 		if err != nil {
 			return 0, false, fmt.Errorf("创建证书错误: %w", err)
@@ -67,6 +69,7 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (certID 
 	_, err = openapiClient.R().
 		SetFileReader("certificate", "certificate.pem", strings.NewReader(certBundle.Certificate)).
 		SetFileReader("certificate_key", "private_key.pem", strings.NewReader(certBundle.PrivateKey)).
+		SetFileReader("intermediate_certificate", "ca_bundle.pem", strings.NewReader(certBundle.CertificateChain)).
 		SetPathParams(map[string]string{
 			"certID": fmt.Sprintf("%d", certID),
 		}).
