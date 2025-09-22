@@ -33,6 +33,17 @@ type CertBundle struct {
 	fingerprintSHA256 string // 证书SHA256指纹
 }
 
+// NewCertBundle 构造一个 CertBundle，支持主证书 + 私钥 + 可选中间证书链
+func NewCertBundle(certPEMData, keyPEMData []byte, chainPEMData ...[]byte) (*CertBundle, error) {
+	var fullCertPEM []byte
+	fullCertPEM = append(fullCertPEM, certPEMData...)
+	for _, chain := range chainPEMData {
+		fullCertPEM = append(fullCertPEM, '\n')
+		fullCertPEM = append(fullCertPEM, chain...)
+	}
+	return ParseCertBundle(fullCertPEM, keyPEMData)
+}
+
 // ParseCertBundle 从PEM编码的证书和私钥数据中解析证书和私钥
 func ParseCertBundle(certPEMData, keyPEMData []byte) (*CertBundle, error) {
 
