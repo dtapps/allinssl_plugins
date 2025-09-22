@@ -50,5 +50,5 @@ func (c *Client) WithSkipVerify() *Client {
 
 // R 返回一个自定义的 Request，以便我们可以调用 SetBodyMap() SetBodyStruct() 解决因 body 顺序不同导致 SHA256 不一样的问题
 func (c *Client) R() *Request {
-	return &Request{c.Client.R()}
+	return &Request{c.Client.R().SetContentType("application/json")}
 }

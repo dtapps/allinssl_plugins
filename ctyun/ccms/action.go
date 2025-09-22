@@ -25,7 +25,6 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (isExist
 			"origin":   "UPLOAD", // 证书来源
 		}).
 		SetResult(&certListResp).
-		SetContentType("application/json").
 		Post("/v1/certificate/list")
 	if err != nil {
 		return false, fmt.Errorf("获取证书列表错误: %w", err)
@@ -59,7 +58,6 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (isExist
 			"encryptionStandard": "INTERNATIONAL",             // 加密标准
 		}).
 		SetResult(&certUpdateResp).
-		SetContentType("application/json").
 		Post("/v1/certificate/upload")
 	if err != nil {
 		err = fmt.Errorf("上传证书错误: %w", err)

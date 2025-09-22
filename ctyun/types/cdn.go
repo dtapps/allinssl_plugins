@@ -15,6 +15,8 @@ type CdnQueryCertInfoResponse struct {
 	Result struct {
 		ID   int    `json:"id"`   // 证书id
 		Name string `json:"name"` // 证书备注名称
+		Cert string `json:"cert"` // 证书内容
+		Key  string `json:"key"`  // 私钥内容
 	} `json:"result"` // 证书信息
 }
 

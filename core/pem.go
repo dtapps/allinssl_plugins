@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -214,6 +215,28 @@ func (cb *CertBundle) GetNoteShort() string {
 		return fmt.Sprintf("%s%s", notePrefix, fp)
 	}
 	return fmt.Sprintf("%s%s", notePrefix, fp[:6])
+}
+
+// IsGeneratedNote 判断传入的 note 字符串是否由 GetNote 或 GetNoteShort 方法生成。
+// 它会自动忽略字符串首尾的空格。
+func (cb *CertBundle) IsGeneratedNote(note string) bool {
+	// 1. 去除首尾空格
+	note = strings.TrimSpace(note)
+
+	// 2. 检查是否以 notePrefix 开头
+	if !strings.HasPrefix(note, notePrefix) {
+		return false
+	}
+
+	// 3. 提取指纹部分
+	fpPart := note[len(notePrefix):]
+
+	// 4. 定义一个正则表达式，用于匹配十六进制字符串
+	// SHA256 指纹是 64 位，缩短版是 6 位，都必须是小写的 [0-9a-f]
+	hexRegex := regexp.MustCompile(`^[0-9a-f]+$`)
+
+	// 5. 验证：长度必须是 64 或 6，并且内容必须是合法的十六进制
+	return (len(fpPart) == 64 || len(fpPart) == 6) && hexRegex.MatchString(fpPart)
 }
 
 // VerifyChain 检查证书链是否完整、有效

@@ -12,6 +12,8 @@ type AccessoneQueryDomainInfoResponse struct {
 type AccessoneQueryCertInfoResponse struct {
 	ID   int    `json:"id"`   // 证书id
 	Name string `json:"name"` // 证书备注名称
+	Cert string `json:"cert"` // 证书内容
+	Key  string `json:"key"`  // 私钥内容
 }
 
 // 边缘安全加速平台 创建证书 响应参数
