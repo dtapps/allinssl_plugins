@@ -32,7 +32,7 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle, as_defau
 	}
 	const customLayout = "Jan 02 15:04:05 2006 MST"
 	for _, certInfo := range certListResp.Data.Certificates {
-		if strings.EqualFold(certInfo.Desc, certBundle.GetNote()) {
+		if strings.EqualFold(certInfo.Desc, certBundle.GetNoteShort()) {
 			if certBundle.IsDNSNamesMatch(certInfo.Subject.SubAltName) {
 				var validTill time.Time
 				validTill, err = time.Parse(customLayout, certInfo.ValidTill)
@@ -57,8 +57,8 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle, as_defau
 		SetQueryParam("version", "1").
 		SetQueryParam("method", "import").
 		SetFormData(map[string]string{
-			"desc":       certBundle.GetNote(), // 证书备注
-			"as_default": as_default,           //是否将证书设置为默认证书
+			"desc":       certBundle.GetNoteShort(), // 证书备注
+			"as_default": as_default,                //是否将证书设置为默认证书
 		}).
 		SetFileReader("cert", "certificate.pem", strings.NewReader(certBundle.Certificate)).
 		SetFileReader("key", "private_key.pem", strings.NewReader(certBundle.PrivateKey)).

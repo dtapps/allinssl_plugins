@@ -25,7 +25,7 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (certID 
 	}
 	for _, certInfo := range certListResp {
 		certID = certInfo.ID
-		if strings.EqualFold(certInfo.NiceName, certBundle.GetNote()) {
+		if strings.EqualFold(certInfo.NiceName, certBundle.GetNoteShort()) {
 			if certInfo.Meta.Certificate != "" && certInfo.Meta.CertificateKey != "" {
 				if certBundle.IsDNSNamesMatch(certInfo.DomainNames) {
 					var expiresOn time.Time
@@ -55,7 +55,7 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (certID 
 		_, err = openapiClient.R().
 			SetBody(map[string]string{
 				"provider":  "other",
-				"nice_name": certBundle.GetNote(),
+				"nice_name": certBundle.GetNoteShort(),
 			}).
 			SetResult(&certCreateResp).
 			Post("/nginx/certificates")

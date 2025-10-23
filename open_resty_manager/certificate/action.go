@@ -44,7 +44,7 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (isExist
 	_, err = openapiClient.R().
 		SetBody(map[string]any{
 			"type": 1,
-			"name": certBundle.GetNote(),
+			"name": certBundle.GetNoteShort(),
 			"crt":  certBundle.Certificate,
 			"key":  certBundle.PrivateKey,
 		}).

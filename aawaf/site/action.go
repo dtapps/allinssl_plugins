@@ -62,10 +62,10 @@ func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertB
 	var updateDomainInfoResp types.CommonResponse[string]
 	_, err = openapiClient.R().
 		SetBody(map[string]any{
-			"site_ids":    []string{siteID},       // 域名
-			"full_chain":  certBundle.Certificate, // 证书完整链
-			"private_key": certBundle.PrivateKey,  // 证书私钥
-			"ssl_name":    certBundle.GetNote(),   // 证书备注名
+			"site_ids":    []string{siteID},          // 域名
+			"full_chain":  certBundle.Certificate,    // 证书完整链
+			"private_key": certBundle.PrivateKey,     // 证书私钥
+			"ssl_name":    certBundle.GetNoteShort(), // 证书备注名
 		}).
 		SetResult(&updateDomainInfoResp).
 		SetContentType("application/json").
