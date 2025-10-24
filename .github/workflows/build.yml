@@ -9,17 +9,18 @@ on:
         default: "ctyun"
         type: choice
         options:
-          - ctyun
-          - nginx_proxy_manager
-          - proxmox
-          - synology
           - aawaf
-          - safeline
-          - xppanel
-          - ratpanel
+          - ctyun
+          - edgeone
           - lucky
-          - uuwaf
+          - nginx_proxy_manager
           - open_resty_manager
+          - proxmox
+          - ratpanel
+          - safeline
+          - synology
+          - uuwaf
+          - xppanel
       arch: # 架构选择输入
         description: "选择架构"
         required: true
