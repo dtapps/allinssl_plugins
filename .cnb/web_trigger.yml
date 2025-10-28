@@ -1,0 +1,70 @@
+branch:
+  - buttons:
+    - name: 打包 模块
+      description: 打包 AllinSSL 第三方插件库 模块
+      event: web_trigger_build_go_binary # 触发的 CI 事件名
+      permissions:
+         roles:
+          - owner
+          - master
+          - developer
+      inputs:
+        goproxy:
+          description: 请选择Go代理
+          required: true
+          type: select
+          default: https://goproxy.cn,direct
+          options:
+            - name: 七牛云
+              value: https://goproxy.cn,direct
+            - name: 全国
+              value: https://goproxy.io,direct
+
+        modules:
+          description: 请选择模块
+          required: true # 是否必填
+          type: select
+          multiple: true 
+          default: 
+          options:
+            - name: 堡塔云WAF
+              value: aawaf
+            - name: 天翼云
+              value: ctyun
+            - name: EdgeOne
+              value: edgeone
+            - name: Lucky
+              value: lucky
+            - name: Nginx Proxy Manager
+              value: nginx_proxy_manager
+            - name: OpenResty
+              value: open_resty_manager
+            - name: Proxmox VE
+              value: proxmox
+            - name: 耗子面板
+              value: ratpanel
+            - name: 雷池WAF
+              value: safeline
+            - name: Synology
+              value: synology
+            - name: 南墙WEB应用防火墙
+              value: uuwaf
+            - name: 小皮面板
+              value: xppanel
+        
+        archs:
+          description: 请选择架构
+          required: true # 是否必填
+          type: select
+          multiple: true  
+          default: 
+          options:
+            - name: Linux AMD64
+              value: linux_amd64
+            - name: Linux ARM64
+              value: linux_arm64
+       
+        version:
+          description: 请输入版本
+          required: true # 是否必填
+          type: input

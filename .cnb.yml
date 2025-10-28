@@ -1,0 +1,127 @@
+"**":
+  # 自定义按钮可触发的事件：web_trigger_*
+  web_trigger_build_go_binary:
+    - runner:
+      services:
+        - docker                       # 启用 Docker 服务（用于 docker build/push）
+      docker:
+        image: golang:1.25.3-trixie    # 使用官方 Golang 镜像，版本固定
+        volumes:
+          - /root/.cache/go-build:copy-on-write  # 挂载 Go 构建缓存
+          - /go:copy-on-write                  # 挂载项目依赖目录（可选，根据需要）
+      stages:
+        - name: 验证 make 工具
+          script: make --version
+          
+        - name: 构建并推送 Docker 镜像
+          script: |
+            echo "=============================="
+            echo "🔧 开始处理 web_trigger_build_go_binary"
+            echo "=============================="
+
+            # 1. 输出原始基本信息
+            echo "原始 goproxy: $goproxy"
+            echo "原始 modules: $modules"
+            echo "原始 archs: $archs"
+            echo "原始 version: $version"
+          
+            # 2. 处理 version：非必填，未输入则自动生成
+            if [ -z "$version" ]; then
+              version="v$(date +%Y%m%d%H%M%S)"
+            fi
+
+            # 3. 如果输入没有 v 前缀，自动加上
+            if ! echo "$version" | grep -qE '^v'; then
+              version="v${version}"
+            fi
+            echo "使用版本号: $version"
+
+            # 4. 处理 modules：逗号分隔成空格，兼容单选和多选
+            modules=$(echo "$modules" | tr ',' ' ')
+            echo "将处理以下类型: $modules"
+
+            # 5. 处理 archs：逗号分隔成空格，兼容单选和多选
+            archs=$(echo "$archs" | tr ',' ' ')
+            echo "将处理以下类型: $archs"
+
+            # 6. 输出处理后的基本信息
+            echo "处理后的 goproxy: $goproxy"
+            echo "处理后的 modules: $modules"
+            echo "处理后的 archs: $archs"
+            echo "处理后的 version: $version"
+            
+            # 7. 配置 GOPROXY
+            go env -w GO111MODULE=on
+            go env -w GOPROXY="$goproxy"
+
+            # 8. 下载依赖
+            go mod tidy
+            go mod vendor
+
+            # 9. 创建bin目录
+            mkdir -p bin
+            
+            # 10. 循环处理每个 module
+            for module in $modules; do
+              echo "----------------------------------------"
+              echo "  开始处理模块: $module"
+
+              # 10-1. 检查目录是否存在
+              if [ ! -d "${module}" ]; then
+                echo "错误：模块目录不存在，跳过：${module}"
+                continue
+              fi
+
+              # 10-2. 进入模块目录并编译 Go 程序
+              echo "  编译 Go 二进制..."
+              cd "${module}"
+              for arch in $archs; do
+                if [ "$arch" = "linux_amd64" ]; then
+                  GOOS=linux GOARCH=amd64 go build -o "../bin/${module}-linux-amd64" .
+                elif [ "$arch" = "linux_arm64" ]; then
+                  GOOS=linux GOARCH=arm64 go build -o "../bin/${module}-linux-arm64" .
+                fi
+              done
+              
+              # 10-3. 返回项目根目录，避免影响下一个 type
+              cd ..
+            done
+
+            echo "=============================="
+            echo "🎉 所有类型构建 & 推送完毕"
+            echo "=============================="
+
+          exports:
+            version: VERSION
+            modules: MODULES
+
+        - name: 拉取 Git Tags（确保 changelog 能工作）
+          script: git fetch --tags --unshallow 2>/dev/null || git fetch --tags
+
+        # https://cnb.cool/cnb/plugins/cnbcool/changelog
+        - name: 生成 changelog 
+          image: cnbcool/changelog
+          exports:
+            latestChangeLog: LATEST_CHANGE_LOG
+
+        # https://docs.cnb.cool/zh/build/internal-steps.html#git-release
+        - name: 创建 Release
+          type: git:release
+          options:
+            tag: ${VERSION} 
+            title: "${VERSION} - 自动打包 ${MODULES}"
+            description: ${LATEST_CHANGE_LOG}
+      
+        # https://cnb.cool/cnb/plugins/cnbcool/attachments
+        - name: 上传 Release 附件  
+          image: cnbcool/attachments:latest
+          settings:
+            type: UPLOAD
+            tag: ${VERSION} 
+            attachments:
+              - "./bin/*"
+          exports:
+            FILES: FILES
+      
+        - name: 输出 Release 附件 
+          script: echo $FILES
