@@ -14,6 +14,7 @@ import (
 
 // 参数
 type Params struct {
+	Debug  bool   // 是否调试模式
 	ZoneID string // 加速域名所属站点 ID
 	Domain string // 域名
 }
@@ -68,7 +69,7 @@ func Action(ctx context.Context, openapiClient *openapi.Client, certBundle *core
 		if dmainInfo.DomainName == par.Domain {
 			for _, certInfo := range dmainInfo.Certificate.List {
 				// 检查域名是否配置了现存证书
-				if certBundle.IsGeneratedNote(certInfo.Alias) {
+				if certBundle.IsSameCertificateNote(certBundle.GetNoteShort(), certInfo.Alias) {
 					expireTime := gotime.SetCurrentParse(certInfo.ExpireTime).Time
 					if expireTime.After(time.Now()) {
 						// 证书已存在且未过期
@@ -84,6 +85,7 @@ func Action(ctx context.Context, openapiClient *openapi.Client, certBundle *core
 
 	// 上传证书
 	sslResp, err := ssl.Action(ctx, openapiClient, certBundle, &ssl.Params{
+		Debug:  par.Debug,
 		Domain: par.Domain,
 	})
 	if err != nil {

@@ -3,6 +3,7 @@ package ssl
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/dtapps/allinssl_plugins/core"
@@ -13,6 +14,7 @@ import (
 
 // 参数
 type Params struct {
+	Debug  bool   // 是否调试模式
 	Domain string // 域名
 }
 
@@ -23,7 +25,6 @@ type Return struct {
 }
 
 // 上传证书
-// isExist: 是否已存在
 // 获取证书列表 https://cloud.tencent.com/document/product/400/41671
 // 上传证书 https://cloud.tencent.com/document/product/400/41665
 func Action(ctx context.Context, openapiClient *openapi.Client, certBundle *core.CertBundle, par *Params) (res *Return, err error) {
@@ -64,7 +65,16 @@ func Action(ctx context.Context, openapiClient *openapi.Client, certBundle *core
 
 	// 检查证书是否已存在
 	for _, certInfo := range certListResp.Response.Certificates {
-		if certBundle.IsGeneratedNote(certInfo.Alias) {
+		if par.Debug {
+			slog.Info("[ssl] 比较",
+				slog.Any("当前域名", certBundle.DNSNames),
+				slog.String("接口域名", certInfo.Domain),
+				slog.String("当前备注", certBundle.GetNoteShort()),
+				slog.String("接口备注", certInfo.Alias),
+				slog.Bool("结果", certBundle.IsSameCertificateNote(certBundle.GetNoteShort(), certInfo.Alias)),
+			)
+		}
+		if certBundle.IsSameCertificateNote(certBundle.GetNoteShort(), certInfo.Alias) {
 			expireTime := gotime.SetCurrentParse(certInfo.CERTEndTime).Time
 			if expireTime.After(time.Now()) {
 				// 证书已存在且未过期
@@ -76,18 +86,19 @@ func Action(ctx context.Context, openapiClient *openapi.Client, certBundle *core
 		}
 	}
 
-	// 上传证书
+	// 上传证书（使用格式优化后的函数，确保证书链完整）
+	privateKey, certificate := core.BuildCertsForAPIFormat(certBundle)
 	certUpdateResp := types.SslUploadCertificateResponse{}
 	_, err = openapiClient.R().
 		SetXTCEndpoint(Endpoint).
 		SetXTCAction("UploadCertificate").
 		SetXTCVersion("2019-12-05").
 		SetBodyMap(map[string]any{
-			"CertificatePublicKey":  certBundle.Certificate,    // 证书内容
-			"CertificatePrivateKey": certBundle.PrivateKey,     // 私钥内容
-			"CertificateType":       "SVR",                     // 证书类型
+			"CertificatePublicKey":  certificate,               // 证书内容（包含完整证书链）
+			"CertificatePrivateKey": privateKey,                // 私钥内容
 			"Alias":                 certBundle.GetNoteShort(), // 证书名称
-			"Repeatable":            true,                      // 相同的证书是否允许重复上传
+			"CertificateType":       "SVR",                     // 证书类型，默认为服务器证书
+			"Repeatable":            true,                      // 允许上传相同指纹的证书
 		}).
 		SetResult(&certUpdateResp).
 		SetContext(ctx).

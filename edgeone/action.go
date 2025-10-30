@@ -117,6 +117,7 @@ func deployTeoAction(cfg map[string]any) (*core.Response, error) {
 	// 域名绑定证书
 	for _, domain := range userDomains {
 		_, err := teo.Action(ctx, openapiClient, certBundle, &teo.Params{
+			Debug:  commonConfig.Debug,
 			ZoneID: zoneID,
 			Domain: domain,
 		})
@@ -170,7 +171,9 @@ func deploySslAction(cfg map[string]any) (*core.Response, error) {
 	}
 
 	// 上传证书
-	sslResp, err := ssl.Action(ctx, openapiClient, certBundle, nil)
+	sslResp, err := ssl.Action(ctx, openapiClient, certBundle, &ssl.Params{
+		Debug: commonConfig.Debug,
+	})
 	if err != nil {
 		return nil, err
 	}

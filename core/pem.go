@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
+	"reflect"
 	"regexp"
 	"sort"
 	"strings"
@@ -239,6 +240,34 @@ func (cb *CertBundle) IsGeneratedNote(note string) bool {
 	return (len(fpPart) == 64 || len(fpPart) == 6) && hexRegex.MatchString(fpPart)
 }
 
+// IsSameCertificateNote 判断两个备注是否属于同一个证书
+// 即使一个是长版本（64位）一个是短版本（6位），只要短版本是长版本的前6位，就认为是同一个证书
+func (cb *CertBundle) IsSameCertificateNote(note1, note2 string) bool {
+	// 1. 去除首尾空格
+	note1 = strings.TrimSpace(note1)
+	note2 = strings.TrimSpace(note2)
+
+	// 2. 验证两个备注都符合格式要求
+	if !cb.IsGeneratedNote(note1) || !cb.IsGeneratedNote(note2) {
+		return false
+	}
+
+	// 3. 提取指纹部分
+	fp1 := note1[len(notePrefix):]
+	fp2 := note2[len(notePrefix):]
+
+	// 4. 比较：如果一个是6位，一个是64位，并且6位是64位的前6位，则认为相同
+	if len(fp1) == 6 && len(fp2) == 64 {
+		return fp2[:6] == fp1
+	}
+	if len(fp2) == 6 && len(fp1) == 64 {
+		return fp1[:6] == fp2
+	}
+
+	// 5. 否则直接比较是否完全相同
+	return fp1 == fp2
+}
+
 // VerifyChain 检查证书链是否完整、有效
 func (cb *CertBundle) VerifyChain() error {
 	// 解析主证书
@@ -303,6 +332,198 @@ func BuildCertsForAPI(certBundle *CertBundle) (key, certs string) {
 	}
 
 	return key, certs
+}
+
+// BuildCertsForAPIFormat 组合第三方接口需要的 key 和 certs，确保格式完全符合API要求
+// 严格按照用户要求的格式：网站证书 -> CA中间证书 -> CA根证书，每个证书块之间使用两个换行符
+func BuildCertsForAPIFormat(certBundle *CertBundle) (key, certs string) {
+	// 严格处理私钥格式，确保完全符合PEM标准
+	key = processPrivateKey(certBundle.PrivateKey)
+
+	// 按照用户要求的格式直接构建证书链
+	var result strings.Builder
+
+	// 1. 首先添加网站证书（主证书）
+	mainCert := processSingleCertificate(certBundle.Certificate)
+	if mainCert != "" {
+		result.WriteString(mainCert)
+	}
+
+	// 2. 然后处理证书链，分离中间证书和根证书
+	if certBundle.CertificateChain != "" {
+		// 分割证书链中的多个证书
+		chainCerts := splitAndProcessCertificates(certBundle.CertificateChain)
+
+		var intermediateCertFound bool
+		var rootCertFound bool
+
+		// 先查找所有证书，识别中间证书和根证书
+		var intermediateCert string
+		var rootCert string
+
+		for _, cert := range chainCerts {
+			// 尝试解析证书以确定类型
+			block, _ := pem.Decode([]byte(cert))
+			if block != nil {
+				x509Cert, err := x509.ParseCertificate(block.Bytes)
+				if err == nil {
+					// 如果颁发者和主题相同，是根证书
+					if reflect.DeepEqual(x509Cert.Issuer, x509Cert.Subject) {
+						rootCert = cert
+						rootCertFound = true
+					} else {
+						// 否则是中间证书
+						intermediateCert = cert
+						intermediateCertFound = true
+					}
+				}
+			}
+		}
+
+		// 按照用户要求的顺序和格式添加证书
+		// 2. 添加CA中间证书，前面加两个换行符
+		if intermediateCertFound {
+			result.WriteString("\n\n")
+			result.WriteString(intermediateCert)
+		}
+
+		// 3. 添加CA根证书，前面加两个换行符
+		if rootCertFound {
+			result.WriteString("\n\n")
+			result.WriteString(rootCert)
+		}
+	}
+
+	certs = result.String()
+	return key, certs
+}
+
+// processPrivateKey 严格处理私钥格式，确保符合PEM标准
+func processPrivateKey(privateKey string) string {
+	// 去除所有空白字符
+	privateKey = strings.TrimSpace(privateKey)
+	if privateKey == "" {
+		return ""
+	}
+
+	// 识别私钥类型
+	var beginMark, endMark string
+	if strings.Contains(privateKey, "RSA PRIVATE KEY") {
+		beginMark = "-----BEGIN RSA PRIVATE KEY-----"
+		endMark = "-----END RSA PRIVATE KEY-----"
+	} else if strings.Contains(privateKey, "PRIVATE KEY") {
+		beginMark = "-----BEGIN PRIVATE KEY-----"
+		endMark = "-----END PRIVATE KEY-----"
+	} else {
+		// 保留原始格式
+		return privateKey
+	}
+
+	// 提取私钥内容（去掉BEGIN和END标记）
+	content := privateKey
+	if strings.HasPrefix(content, beginMark) {
+		content = content[len(beginMark):]
+	}
+	if strings.HasSuffix(content, endMark) {
+		content = content[:len(content)-len(endMark)]
+	}
+
+	// 去除内容中的空白字符，只保留Base64编码部分
+	content = strings.TrimSpace(content)
+	content = strings.ReplaceAll(content, "\n", "")
+	content = strings.ReplaceAll(content, "\r", "")
+	content = strings.ReplaceAll(content, "\t", "")
+	content = strings.ReplaceAll(content, " ", "")
+
+	// 重新格式化私钥，确保每行64个字符
+	var formattedContent strings.Builder
+	for i := 0; i < len(content); i += 64 {
+		end := i + 64
+		if end > len(content) {
+			end = len(content)
+		}
+		formattedContent.WriteString(content[i:end])
+		formattedContent.WriteString("\n")
+	}
+
+	// 构建完整的私钥格式，确保格式完全正确
+	var result strings.Builder
+	result.WriteString(beginMark)
+	result.WriteString("\n")
+	result.WriteString(formattedContent.String())
+	result.WriteString(endMark)
+
+	return result.String()
+}
+
+// processSingleCertificate 处理单个证书，确保格式完全正确
+func processSingleCertificate(cert string) string {
+	// 去除所有空白字符和换行符，然后重新格式化
+	cert = strings.TrimSpace(cert)
+	if cert == "" {
+		return ""
+	}
+
+	// 确保证书有正确的BEGIN和END标记
+	beginMark := "-----BEGIN CERTIFICATE-----"
+	endMark := "-----END CERTIFICATE-----"
+
+	// 提取证书内容（去掉BEGIN和END标记）
+	content := cert
+	if strings.HasPrefix(content, beginMark) {
+		content = content[len(beginMark):]
+	}
+	if strings.HasSuffix(content, endMark) {
+		content = content[:len(content)-len(endMark)]
+	}
+
+	// 去除内容中的空白字符，只保留Base64编码部分
+	content = strings.TrimSpace(content)
+	content = strings.ReplaceAll(content, "\n", "")
+	content = strings.ReplaceAll(content, "\r", "")
+	content = strings.ReplaceAll(content, "\t", "")
+	content = strings.ReplaceAll(content, " ", "")
+
+	// 重新格式化证书，确保每行64个字符
+	var formattedContent strings.Builder
+	for i := 0; i < len(content); i += 64 {
+		end := i + 64
+		if end > len(content) {
+			end = len(content)
+		}
+		if i > 0 {
+			formattedContent.WriteString("\n")
+		}
+		formattedContent.WriteString(content[i:end])
+	}
+
+	// 构建完整的证书格式，确保格式完全正确
+	var result strings.Builder
+	result.WriteString(beginMark)
+	result.WriteString("\n")
+	result.WriteString(formattedContent.String())
+	result.WriteString("\n")
+	result.WriteString(endMark)
+
+	return result.String()
+}
+
+// splitAndProcessCertificates 分割并处理多个证书
+func splitAndProcessCertificates(certs string) []string {
+	var result []string
+
+	// 使用正则表达式分割证书
+	certPattern := regexp.MustCompile(`-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----`)
+	matches := certPattern.FindAllString(certs, -1)
+
+	for _, match := range matches {
+		processed := processSingleCertificate(match)
+		if processed != "" {
+			result = append(result, processed)
+		}
+	}
+
+	return result
 }
 
 // 证书信息
