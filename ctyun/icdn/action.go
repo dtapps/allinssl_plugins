@@ -32,7 +32,7 @@ func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertB
 	}
 
 	// 2. 检查域名是否配置了现存证书
-	if certBundle.IsGeneratedNote(queryDomainInfo.ReturnObj.CertName) {
+	if certBundle.IsSameCertificateNote(certBundle.GetNoteShort(), queryDomainInfo.ReturnObj.CertName) {
 		return true, nil
 	}
 
@@ -47,7 +47,7 @@ func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertB
 	}
 
 	// 4. 证书不存在就上传证书
-	if !certBundle.IsGeneratedNote(queryCertInfo.ReturnObj.Result.Name) {
+	if !certBundle.IsSameCertificateNote(certBundle.GetNoteShort(), queryCertInfo.ReturnObj.Result.Name) {
 		// 加载 API 证书
 		apiCertBundle, err := certBundle.LoadApiCert([]byte(queryCertInfo.ReturnObj.Result.Cert), []byte(queryCertInfo.ReturnObj.Result.Key))
 		if err != nil {

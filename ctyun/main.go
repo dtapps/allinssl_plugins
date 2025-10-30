@@ -7,7 +7,7 @@ import (
 var pluginMeta = map[string]any{
 	"name":        "ctyun",
 	"description": "部署到天翼云",
-	"version":     "1.0.8",
+	"version":     "1.0.9",
 	"author":      "dtapps",
 	"config": map[string]any{
 		"access_key": "天翼云 AccessKey",
