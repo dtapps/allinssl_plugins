@@ -8,6 +8,7 @@ import (
 	"github.com/dtapps/allinssl_plugins/core"
 	"github.com/dtapps/allinssl_plugins/edgeone/openapi"
 	"github.com/dtapps/allinssl_plugins/edgeone/types"
+	"go.dtapp.net/library/utils/gotime"
 )
 
 // 参数
@@ -64,11 +65,7 @@ func Action(ctx context.Context, openapiClient *openapi.Client, certBundle *core
 	// 检查证书是否已存在
 	for _, certInfo := range certListResp.Response.Certificates {
 		if certBundle.IsGeneratedNote(certInfo.Alias) {
-			var expireTime time.Time
-			expireTime, err = time.Parse(time.RFC3339, certInfo.CERTEndTime)
-			if err != nil {
-				return nil, fmt.Errorf("解析过期时间失败: %w", err)
-			}
+			expireTime := gotime.SetCurrentParse(certInfo.CERTEndTime).Time
 			if expireTime.After(time.Now()) {
 				// 证书已存在且未过期
 				return &Return{

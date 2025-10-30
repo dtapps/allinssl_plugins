@@ -91,6 +91,9 @@
             echo "🎉 所有类型构建 & 推送完毕"
             echo "=============================="
 
+            # 11. 通过 set-output 输出到 result
+            echo "##[set-output version=$version]"
+            echo "##[set-output modules=$modules]"
           exports:
             version: VERSION
             modules: MODULES

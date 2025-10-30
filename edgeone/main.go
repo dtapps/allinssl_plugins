@@ -7,7 +7,7 @@ import (
 var pluginMeta = map[string]any{
 	"name":        "edgeone",
 	"description": "部署到腾讯云/EdgeOne",
-	"version":     "1.0.0",
+	"version":     "1.0.1",
 	"author":      "dtapps",
 	"config": map[string]any{
 		"secret_id":  "腾讯云 SecretId",

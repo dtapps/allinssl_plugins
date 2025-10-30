@@ -9,6 +9,7 @@ import (
 	"github.com/dtapps/allinssl_plugins/edgeone/openapi"
 	"github.com/dtapps/allinssl_plugins/edgeone/ssl"
 	"github.com/dtapps/allinssl_plugins/edgeone/types"
+	"go.dtapp.net/library/utils/gotime"
 )
 
 // 参数
@@ -63,21 +64,17 @@ func Action(ctx context.Context, openapiClient *openapi.Client, certBundle *core
 	}
 
 	// 检查域名证书是否配置了
-	for _, dmain := range dmainListResp.Response.AccelerationDomains {
-		if dmain.DomainName == par.Domain {
-			for _, cert := range dmain.Certificate.List {
+	for _, dmainInfo := range dmainListResp.Response.AccelerationDomains {
+		if dmainInfo.DomainName == par.Domain {
+			for _, certInfo := range dmainInfo.Certificate.List {
 				// 检查域名是否配置了现存证书
-				if certBundle.IsGeneratedNote(cert.Alias) {
-					var expireTime time.Time
-					expireTime, err = time.Parse(time.RFC3339, cert.ExpireTime)
-					if err != nil {
-						return nil, fmt.Errorf("解析过期时间失败: %w", err)
-					}
+				if certBundle.IsGeneratedNote(certInfo.Alias) {
+					expireTime := gotime.SetCurrentParse(certInfo.ExpireTime).Time
 					if expireTime.After(time.Now()) {
 						// 证书已存在且未过期
 						return &Return{
 							Bound:  true,
-							CertID: cert.CertID,
+							CertID: certInfo.CertID,
 						}, nil
 					}
 				}
