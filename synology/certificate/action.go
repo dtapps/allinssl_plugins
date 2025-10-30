@@ -37,7 +37,7 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle, as_defau
 				var validTill time.Time
 				validTill, err = time.Parse(customLayout, certInfo.ValidTill)
 				if err != nil {
-					return false, fmt.Errorf("解析过期时间失败: %w", err)
+					return false, fmt.Errorf("Certificate 解析过期时间失败: %w", err)
 				}
 				if validTill.After(time.Now()) {
 					// 证书已存在且未过期

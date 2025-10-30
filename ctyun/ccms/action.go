@@ -38,7 +38,7 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (isExist
 			var expireTime time.Time
 			expireTime, err = time.Parse(time.RFC3339, certInfo.ExpireTime)
 			if err != nil {
-				return false, fmt.Errorf("解析过期时间失败: %w", err)
+				return false, fmt.Errorf("Ccms 解析过期时间失败: %w", err)
 			}
 			if expireTime.After(time.Now()) {
 				// 证书已存在且未过期

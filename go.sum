@@ -1,5 +1,7 @@
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+go.dtapp.net/library/utils/gotime v1.0.17 h1:XJgjbEfgeAMkVMBNWbpXRtfe+NjrRPuZPSCB/QqJT2k=
+go.dtapp.net/library/utils/gotime v1.0.17/go.mod h1:60Un/r+0aFC3+WxBKHodsi08UTaIuSwvQpj86gi/0Rg=
 golang.org/x/net v0.46.0 h1:giFlY12I07fugqwPuWJi68oOnpfqFnJIJzaIIm2JVV4=
 golang.org/x/net v0.46.0/go.mod h1:Q9BGdFy1y4nkUwiLvT5qtyhAnEHgnQ/zd8PfU6nc210=
 resty.dev/v3 v3.0.0-beta.3 h1:3kEwzEgCnnS6Ob4Emlk94t+I/gClyoah7SnNi67lt+E=
