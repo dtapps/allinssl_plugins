@@ -40,34 +40,31 @@ func Action(ctx context.Context, openapiClient *openapi.Client, domain string, c
 		return true, nil
 	}
 
-	// 3. 查询证书信息
-	var queryCertInfo types.CommonResponse[types.AccessoneQueryCertInfoResponse]
-	_, err = openapiClient.R().
-		SetQueryParam("name", certBundle.GetNoteShort()). // 证书备注名
-		SetResult(&queryCertInfo).
-		SetContext(ctx).
-		Get("/ctapi/v1/accessone/cert/query")
-	if err != nil {
-		return false, fmt.Errorf("查询证书信息错误: %w", err)
-	}
+	// 3. 证书不存在就上传证书
+	if !certBundle.IsSameCertificateNote(certBundle.GetNoteShort(), queryDomainInfo.ReturnObj.CertName) {
 
-	// 4. 证书不存在就上传证书
-	if !certBundle.IsSameCertificateNote(certBundle.GetNoteShort(), queryCertInfo.ReturnObj.Result.Name) {
-		// 加载 API 证书
-		apiCertBundle, err := certBundle.LoadApiCert([]byte(queryCertInfo.ReturnObj.Result.Certs), []byte(queryCertInfo.ReturnObj.Result.Key))
-		if err != nil {
-			return false, fmt.Errorf("加载 API 证书错误: %w", err)
-		}
 		// 是否上传
 		isUpload := false
-		if !apiCertBundle.IsCertsEqual() {
+
+		// 查询证书是否存在
+		var queryCertInfo types.CommonResponse[types.AccessoneQueryCertInfoResponse]
+		_, err = openapiClient.R().
+			SetQueryParam("name", certBundle.GetNoteShort()). // 证书备注名
+			SetResult(&queryCertInfo).
+			SetContext(ctx).
+			Get("/ctapi/v1/accessone/cert/query")
+		if err != nil {
+			return false, fmt.Errorf("查询证书信息错误: %w", err)
+		}
+		if queryCertInfo.ReturnObj.Result.Name != "" {
+			isUpload = false
+		} else {
 			isUpload = true
 		}
-		if apiCertBundle.IsAPIExpired() {
-			isUpload = true
-		}
+
+		// 不存在就上传
 		if isUpload {
-			privateKey, certificate := core.BuildCertsForAPI(apiCertBundle.Local)
+			privateKey, certificate := core.BuildCertsForAPI(certBundle)
 			var uploadCertInfo types.CommonResponse[types.AccessoneUpdateCertInfoResponse]
 			_, err = openapiClient.R().
 				SetBodyMap(map[string]any{
@@ -87,7 +84,7 @@ func Action(ctx context.Context, openapiClient *openapi.Client, domain string, c
 		}
 	}
 
-	// 5. 更新域名信息
+	// 4. 更新域名信息
 	var updateDomainInfo types.CommonResponse[any]
 	_, err = openapiClient.R().
 		SetBodyMap(map[string]any{
