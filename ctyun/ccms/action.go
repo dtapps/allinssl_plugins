@@ -1,6 +1,7 @@
 package ccms
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -14,7 +15,7 @@ import (
 // isExist: 是否已存在
 // 查询用户证书列表 https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=152&api=17233&data=204&isNormal=1&vid=283
 // 上传证书 https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=152&api=17243&data=204&isNormal=1&vid=283
-func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (isExist bool, err error) {
+func Action(ctx context.Context, openapiClient *openapi.Client, certBundle *core.CertBundle) (isExist bool, err error) {
 
 	// 1. 获取证书列表
 	var certListResp types.CommonResponse[types.CcmsCertificateListResponse]
@@ -25,6 +26,7 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (isExist
 			"origin":   "UPLOAD", // 证书来源
 		}).
 		SetResult(&certListResp).
+		SetContext(ctx).
 		Post("/v1/certificate/list")
 	if err != nil {
 		return false, fmt.Errorf("获取证书列表错误: %w", err)
@@ -58,6 +60,7 @@ func Action(openapiClient *openapi.Client, certBundle *core.CertBundle) (isExist
 			"encryptionStandard": "INTERNATIONAL",             // 加密标准
 		}).
 		SetResult(&certUpdateResp).
+		SetContext(ctx).
 		Post("/v1/certificate/upload")
 	if err != nil {
 		err = fmt.Errorf("上传证书错误: %w", err)

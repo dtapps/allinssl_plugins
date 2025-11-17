@@ -1,6 +1,7 @@
 package accessone
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/dtapps/allinssl_plugins/core"
@@ -15,7 +16,7 @@ import (
 // 查询证书详情 https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=113&api=13015&data=174&isNormal=1&vid=167
 // 创建证书 https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=113&api=13014&data=174&isNormal=1&vid=167
 // 域名基础及加速配置修改 https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=113&api=13413&data=174&isNormal=1&vid=167
-func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertBundle) (isBound bool, err error) {
+func Action(ctx context.Context, openapiClient *openapi.Client, domain string, certBundle *core.CertBundle) (isBound bool, err error) {
 
 	// 1. 获取域名信息
 	var queryDomainInfo types.CommonResponse[types.AccessoneQueryDomainInfoResponse]
@@ -25,6 +26,7 @@ func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertB
 			"domain":       domain,      // 域名
 		}).
 		SetResult(&queryDomainInfo).
+		SetContext(ctx).
 		Post("/ctapi/v1/accessone/domain/config")
 	if err != nil {
 		return false, fmt.Errorf("获取 %s 域名信息错误: %w", domain, err)
@@ -43,6 +45,7 @@ func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertB
 	_, err = openapiClient.R().
 		SetQueryParam("name", certBundle.GetNoteShort()). // 证书备注名
 		SetResult(&queryCertInfo).
+		SetContext(ctx).
 		Get("/ctapi/v1/accessone/cert/query")
 	if err != nil {
 		return false, fmt.Errorf("查询证书信息错误: %w", err)
@@ -51,7 +54,7 @@ func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertB
 	// 4. 证书不存在就上传证书
 	if !certBundle.IsSameCertificateNote(certBundle.GetNoteShort(), queryCertInfo.ReturnObj.Name) {
 		// 加载 API 证书
-		apiCertBundle, err := certBundle.LoadApiCert([]byte(queryCertInfo.ReturnObj.Cert), []byte(queryCertInfo.ReturnObj.Key))
+		apiCertBundle, err := certBundle.LoadApiCert([]byte(queryCertInfo.ReturnObj.Certs), []byte(queryCertInfo.ReturnObj.Key))
 		if err != nil {
 			return false, fmt.Errorf("加载 API 证书错误: %w", err)
 		}
@@ -73,6 +76,7 @@ func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertB
 					"certs": certificate,               // 证书公钥
 				}).
 				SetResult(&uploadCertInfo).
+				SetContext(ctx).
 				Post("/ctapi/v1/accessone/cert/create")
 			if err != nil {
 				return false, fmt.Errorf("上传证书错误: %w", err)
@@ -92,6 +96,7 @@ func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertB
 			"cert_name":    certBundle.GetNoteShort(), // 证书备注名
 		}).
 		SetResult(&updateDomainInfo).
+		SetContext(ctx).
 		Post("/ctapi/v1/accessone/domain/modify_config")
 	if err != nil {
 		return false, fmt.Errorf("更新域名信息错误: %w", err)

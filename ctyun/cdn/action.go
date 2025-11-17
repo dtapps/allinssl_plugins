@@ -1,6 +1,7 @@
 package cdn
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/dtapps/allinssl_plugins/core"
@@ -15,7 +16,7 @@ import (
 // 查询证书详情 https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=108&api=10899&data=161&isNormal=1&vid=154
 // 创建证书 https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=108&api=10893&data=161&isNormal=1&vid=154
 // 修改域名配置 https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=108&api=11308&data=161&isNormal=1&vid=154
-func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertBundle) (isBound bool, err error) {
+func Action(ctx context.Context, openapiClient *openapi.Client, domain string, certBundle *core.CertBundle) (isBound bool, err error) {
 
 	// 1. 获取域名信息
 	var queryDomainInfo types.CommonResponse[types.CdnQueryDomainInfoResponse]
@@ -23,6 +24,7 @@ func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertB
 		SetQueryParam("product_code", productCode). // 产品类型
 		SetQueryParam("domain", domain).            // 域名
 		SetResult(&queryDomainInfo).
+		SetContext(ctx).
 		Get("/v1/domain/query-domain-detail")
 	if err != nil {
 		return false, fmt.Errorf("获取 %s 域名信息错误: %w", domain, err)
@@ -41,6 +43,7 @@ func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertB
 	_, err = openapiClient.R().
 		SetQueryParam("name", certBundle.GetNoteShort()). // 证书备注名
 		SetResult(&queryCertInfo).
+		SetContext(ctx).
 		Get("/v1/cert/query-cert-detail")
 	if err != nil {
 		return false, fmt.Errorf("查询证书信息错误: %w", err)
@@ -49,7 +52,7 @@ func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertB
 	// 4. 证书不存在就上传证书
 	if !certBundle.IsSameCertificateNote(certBundle.GetNoteShort(), queryCertInfo.ReturnObj.Result.Name) {
 		// 加载 API 证书
-		apiCertBundle, err := certBundle.LoadApiCert([]byte(queryCertInfo.ReturnObj.Result.Cert), []byte(queryCertInfo.ReturnObj.Result.Key))
+		apiCertBundle, err := certBundle.LoadApiCert([]byte(queryCertInfo.ReturnObj.Result.Certs), []byte(queryCertInfo.ReturnObj.Result.Key))
 		if err != nil {
 			return false, fmt.Errorf("加载 API 证书错误: %w", err)
 		}
@@ -71,6 +74,7 @@ func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertB
 					"certs": certificate,               // 证书公钥
 				}).
 				SetResult(&uploadCertInfo).
+				SetContext(ctx).
 				Post("/v1/cert/creat-cert")
 			if err != nil {
 				return false, fmt.Errorf("上传证书错误: %w", err)
@@ -90,6 +94,7 @@ func Action(openapiClient *openapi.Client, domain string, certBundle *core.CertB
 			"cert_name":    certBundle.GetNoteShort(), // 证书备注名
 		}).
 		SetResult(&updateDomainInfo).
+		SetContext(ctx).
 		Post("/v1/domain/update-domain")
 	if err != nil {
 		return false, fmt.Errorf("更新域名信息错误: %w", err)

@@ -10,10 +10,10 @@ type AccessoneQueryDomainInfoResponse struct {
 // 边缘安全加速平台 查询证书详情 响应参数
 // https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=113&api=13015&data=174&isNormal=1&vid=167
 type AccessoneQueryCertInfoResponse struct {
-	ID   int    `json:"id"`   // 证书id
-	Name string `json:"name"` // 证书备注名称
-	Cert string `json:"cert"` // 证书内容
-	Key  string `json:"key"`  // 私钥内容
+	ID    int    `json:"id"`    // 证书id
+	Name  string `json:"name"`  // 证书备注名称
+	Certs string `json:"certs"` // 证书内容
+	Key   string `json:"key"`   // 私钥内容
 }
 
 // 边缘安全加速平台 创建证书 响应参数

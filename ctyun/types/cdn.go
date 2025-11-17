@@ -13,10 +13,10 @@ type CdnQueryDomainInfoResponse struct {
 // https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=108&api=10899&data=161&isNormal=1&vid=154
 type CdnQueryCertInfoResponse struct {
 	Result struct {
-		ID   int    `json:"id"`   // 证书id
-		Name string `json:"name"` // 证书备注名称
-		Cert string `json:"cert"` // 证书内容
-		Key  string `json:"key"`  // 私钥内容
+		ID    int    `json:"id"`    // 证书id
+		Name  string `json:"name"`  // 证书备注名称
+		Certs string `json:"certs"` // 证书内容
+		Key   string `json:"key"`   // 私钥内容
 	} `json:"result"` // 证书信息
 }
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -12,47 +13,88 @@ import (
 	"github.com/dtapps/allinssl_plugins/ctyun/openapi"
 )
 
-// 部署到天翼云CDN加速
-func deployCdnAction(cfg map[string]any) (*core.Response, error) {
+type CommonConfig struct {
+	Debug     bool   `json:"debug"`
+	Cert      string `json:"cert"`
+	Key       string `json:"key"`
+	AccessKey string `json:"access_key"`
+	SecretKey string `json:"secret_key"`
+}
 
-	if cfg == nil {
-		return nil, fmt.Errorf("config cannot be nil")
+// 解析公共配置
+func parseCommonConfig(cfg map[string]any) (commonConfig *CommonConfig, err error) {
+	// 检查是否开启调试模式
+	isDebug, ok := cfg["debug"].(bool)
+	if !ok {
+		isDebug = false
 	}
+
+	// 证书字符串
 	certStr, ok := cfg["cert"].(string)
 	if !ok || certStr == "" {
 		return nil, fmt.Errorf("cert is required and must be a string")
 	}
+
+	// 证书私钥字符串
 	keyStr, ok := cfg["key"].(string)
 	if !ok || keyStr == "" {
 		return nil, fmt.Errorf("key is required and must be a string")
 	}
 
-	ctAccessKey, ok := cfg["access_key"].(string)
-	if !ok || ctAccessKey == "" {
+	// access_key
+	access_key, ok := cfg["access_key"].(string)
+	if !ok || access_key == "" {
 		return nil, fmt.Errorf("access_key is required and must be a string")
 	}
-	ctSecretKey, ok := cfg["secret_key"].(string)
-	if !ok || ctSecretKey == "" {
+
+	// secret_key
+	secret_key, ok := cfg["secret_key"].(string)
+	if !ok || secret_key == "" {
 		return nil, fmt.Errorf("secret_key is required and must be a string")
 	}
-	ctDomain, ok := cfg["domain"].(string)
-	if !ok || ctDomain == "" {
+
+	// 返回公共配置
+	return &CommonConfig{
+		Debug:     isDebug,
+		Cert:      certStr,
+		Key:       keyStr,
+		AccessKey: access_key,
+		SecretKey: secret_key,
+	}, nil
+}
+
+// 部署到天翼云CDN加速
+func deployCdnAction(cfg map[string]any) (*core.Response, error) {
+
+	ctx := context.Background()
+
+	if cfg == nil {
+		return nil, fmt.Errorf("config cannot be nil")
+	}
+	commonConfig, err := parseCommonConfig(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("parse common config error: %w", err)
+	}
+
+	// 域名
+	domain, ok := cfg["domain"].(string)
+	if !ok || domain == "" {
 		return nil, fmt.Errorf("domain is required and must be a string")
 	}
 
 	// 解析证书字符串
-	certBundle, err := core.ParseCertBundle([]byte(certStr), []byte(keyStr))
+	certBundle, err := core.ParseCertBundle([]byte(commonConfig.Cert), []byte(commonConfig.Key))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse cert bundle: %w", err)
 	}
 
-	// 1. 检查证书是否过期
+	// 检查证书是否过期
 	if certBundle.IsExpired() {
 		return nil, fmt.Errorf("证书已过期 %s", certBundle.NotAfter.Format(time.DateTime))
 	}
 
-	// 2. 解析传入域名
-	userDomains, isMultiple := core.ParseDomainsFixedSeparator(ctDomain, ",")
+	// 解析传入域名
+	userDomains, isMultiple := core.ParseDomainsFixedSeparator(domain, ",")
 	if isMultiple {
 		if !certBundle.CanDomainsUseCert(userDomains) {
 			return nil, fmt.Errorf("域名和证书不匹配，证书支持域名：%v，传入域名：%v", certBundle.DNSNames, userDomains)
@@ -60,15 +102,20 @@ func deployCdnAction(cfg map[string]any) (*core.Response, error) {
 	}
 
 	// 创建请求客户端
-	openapiClient, err := openapi.NewClient(cdn.Endpoint, ctAccessKey, ctSecretKey)
+	openapiClient, err := openapi.NewClient(cdn.Endpoint, commonConfig.AccessKey, commonConfig.SecretKey)
 	if err != nil {
 		return nil, fmt.Errorf("创建请求客户端错误: %w", err)
 	}
-	// openapiClient.WithDebug()
+	if commonConfig.Debug {
+		openapiClient.WithDebug()
+	}
 
-	// 1. 域名绑定证书
+	// 域名绑定证书
 	for _, domain := range userDomains {
-		_, err = cdn.Action(openapiClient, domain, certBundle)
+		if domain == "" {
+			continue
+		}
+		_, err = cdn.Action(ctx, openapiClient, domain, certBundle)
 		if err != nil {
 			return nil, err
 		}
@@ -78,8 +125,9 @@ func deployCdnAction(cfg map[string]any) (*core.Response, error) {
 		Status:  "success",
 		Message: "更新域名证书成功",
 		Result: map[string]any{
-			"domain": ctDomain,
-			"cert":   certBundle.ResultInfo(),
+			"domain":           domain,
+			"cert_note":        certBundle.GetNoteShort(),
+			"cert_expiry_time": certBundle.NotAfter.Format(time.DateTime),
 		},
 	}, nil
 }
@@ -87,44 +135,35 @@ func deployCdnAction(cfg map[string]any) (*core.Response, error) {
 // 部署到天翼云全站加速
 func deployIcdnAction(cfg map[string]any) (*core.Response, error) {
 
+	ctx := context.Background()
+
 	if cfg == nil {
 		return nil, fmt.Errorf("config cannot be nil")
 	}
-	certStr, ok := cfg["cert"].(string)
-	if !ok || certStr == "" {
-		return nil, fmt.Errorf("cert is required and must be a string")
-	}
-	keyStr, ok := cfg["key"].(string)
-	if !ok || keyStr == "" {
-		return nil, fmt.Errorf("key is required and must be a string")
+	commonConfig, err := parseCommonConfig(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("parse common config error: %w", err)
 	}
 
-	ctAccessKey, ok := cfg["access_key"].(string)
-	if !ok || ctAccessKey == "" {
-		return nil, fmt.Errorf("access_key is required and must be a string")
-	}
-	ctSecretKey, ok := cfg["secret_key"].(string)
-	if !ok || ctSecretKey == "" {
-		return nil, fmt.Errorf("secret_key is required and must be a string")
-	}
-	ctDomain, ok := cfg["domain"].(string)
-	if !ok || ctDomain == "" {
+	// 域名
+	domain, ok := cfg["domain"].(string)
+	if !ok || domain == "" {
 		return nil, fmt.Errorf("domain is required and must be a string")
 	}
 
 	// 解析证书字符串
-	certBundle, err := core.ParseCertBundle([]byte(certStr), []byte(keyStr))
+	certBundle, err := core.ParseCertBundle([]byte(commonConfig.Cert), []byte(commonConfig.Key))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse cert bundle: %w", err)
 	}
 
-	// 1. 检查证书是否过期
+	// 检查证书是否过期
 	if certBundle.IsExpired() {
 		return nil, fmt.Errorf("证书已过期 %s", certBundle.NotAfter.Format(time.DateTime))
 	}
 
-	// 2. 解析传入域名
-	userDomains, isMultiple := core.ParseDomainsFixedSeparator(ctDomain, ",")
+	// 解析传入域名
+	userDomains, isMultiple := core.ParseDomainsFixedSeparator(domain, ",")
 	if isMultiple {
 		if !certBundle.CanDomainsUseCert(userDomains) {
 			return nil, fmt.Errorf("域名和证书不匹配，证书支持域名：%v，传入域名：%v", certBundle.DNSNames, userDomains)
@@ -132,15 +171,20 @@ func deployIcdnAction(cfg map[string]any) (*core.Response, error) {
 	}
 
 	// 创建请求客户端
-	openapiClient, err := openapi.NewClient(icdn.Endpoint, ctAccessKey, ctSecretKey)
+	openapiClient, err := openapi.NewClient(icdn.Endpoint, commonConfig.AccessKey, commonConfig.SecretKey)
 	if err != nil {
 		return nil, fmt.Errorf("创建请求客户端错误: %w", err)
 	}
-	// openapiClient.WithDebug()
+	if commonConfig.Debug {
+		openapiClient.WithDebug()
+	}
 
-	// 1. 域名绑定证书
+	// 域名绑定证书
 	for _, domain := range userDomains {
-		_, err := icdn.Action(openapiClient, domain, certBundle)
+		if domain == "" {
+			continue
+		}
+		_, err := icdn.Action(ctx, openapiClient, domain, certBundle)
 		if err != nil {
 			return nil, err
 		}
@@ -150,8 +194,9 @@ func deployIcdnAction(cfg map[string]any) (*core.Response, error) {
 		Status:  "success",
 		Message: "更新域名证书成功",
 		Result: map[string]any{
-			"domain": ctDomain,
-			"cert":   certBundle.ResultInfo(),
+			"domain":           domain,
+			"cert_note":        certBundle.GetNoteShort(),
+			"cert_expiry_time": certBundle.NotAfter.Format(time.DateTime),
 		},
 	}, nil
 }
@@ -159,44 +204,35 @@ func deployIcdnAction(cfg map[string]any) (*core.Response, error) {
 // 部署到天翼云边缘安全加速平台
 func deployAccessoneAction(cfg map[string]any) (*core.Response, error) {
 
+	ctx := context.Background()
+
 	if cfg == nil {
 		return nil, fmt.Errorf("config cannot be nil")
 	}
-	certStr, ok := cfg["cert"].(string)
-	if !ok || certStr == "" {
-		return nil, fmt.Errorf("cert is required and must be a string")
-	}
-	keyStr, ok := cfg["key"].(string)
-	if !ok || keyStr == "" {
-		return nil, fmt.Errorf("key is required and must be a string")
+	commonConfig, err := parseCommonConfig(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("parse common config error: %w", err)
 	}
 
-	ctAccessKey, ok := cfg["access_key"].(string)
-	if !ok || ctAccessKey == "" {
-		return nil, fmt.Errorf("access_key is required and must be a string")
-	}
-	ctSecretKey, ok := cfg["secret_key"].(string)
-	if !ok || ctSecretKey == "" {
-		return nil, fmt.Errorf("secret_key is required and must be a string")
-	}
-	ctDomain, ok := cfg["domain"].(string)
-	if !ok || ctDomain == "" {
+	// 域名
+	domain, ok := cfg["domain"].(string)
+	if !ok || domain == "" {
 		return nil, fmt.Errorf("domain is required and must be a string")
 	}
 
 	// 解析证书字符串
-	certBundle, err := core.ParseCertBundle([]byte(certStr), []byte(keyStr))
+	certBundle, err := core.ParseCertBundle([]byte(commonConfig.Cert), []byte(commonConfig.Key))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse cert bundle: %w", err)
 	}
 
-	// 1. 检查证书是否过期
+	// 检查证书是否过期
 	if certBundle.IsExpired() {
 		return nil, fmt.Errorf("证书已过期 %s", certBundle.NotAfter.Format(time.DateTime))
 	}
 
-	// 2. 解析传入域名
-	userDomains, isMultiple := core.ParseDomainsFixedSeparator(ctDomain, ",")
+	// 解析传入域名
+	userDomains, isMultiple := core.ParseDomainsFixedSeparator(domain, ",")
 	if isMultiple {
 		if !certBundle.CanDomainsUseCert(userDomains) {
 			return nil, fmt.Errorf("域名和证书不匹配，证书支持域名：%v，传入域名：%v", certBundle.DNSNames, userDomains)
@@ -204,15 +240,20 @@ func deployAccessoneAction(cfg map[string]any) (*core.Response, error) {
 	}
 
 	// 创建请求客户端
-	openapiClient, err := openapi.NewClient(accessone.Endpoint, ctAccessKey, ctSecretKey)
+	openapiClient, err := openapi.NewClient(accessone.Endpoint, commonConfig.AccessKey, commonConfig.SecretKey)
 	if err != nil {
 		return nil, fmt.Errorf("创建请求客户端错误: %w", err)
 	}
-	// openapiClient.WithDebug()
+	if commonConfig.Debug {
+		openapiClient.WithDebug()
+	}
 
 	// 1. 域名绑定证书
 	for _, domain := range userDomains {
-		_, err := accessone.Action(openapiClient, domain, certBundle)
+		if domain == "" {
+			continue
+		}
+		_, err := accessone.Action(ctx, openapiClient, domain, certBundle)
 		if err != nil {
 			return nil, err
 		}
@@ -222,8 +263,9 @@ func deployAccessoneAction(cfg map[string]any) (*core.Response, error) {
 		Status:  "success",
 		Message: "更新域名证书成功",
 		Result: map[string]any{
-			"domain": ctDomain,
-			"cert":   certBundle.ResultInfo(),
+			"domain":           domain,
+			"cert_note":        certBundle.GetNoteShort(),
+			"cert_expiry_time": certBundle.NotAfter.Format(time.DateTime),
 		},
 	}, nil
 }
@@ -231,47 +273,38 @@ func deployAccessoneAction(cfg map[string]any) (*core.Response, error) {
 // 上传证书到天翼云证书管理
 func deployCcmsAction(cfg map[string]any) (*core.Response, error) {
 
+	ctx := context.Background()
+
 	if cfg == nil {
 		return nil, fmt.Errorf("config cannot be nil")
 	}
-	certStr, ok := cfg["cert"].(string)
-	if !ok || certStr == "" {
-		return nil, fmt.Errorf("cert is required and must be a string")
-	}
-	keyStr, ok := cfg["key"].(string)
-	if !ok || keyStr == "" {
-		return nil, fmt.Errorf("key is required and must be a string")
-	}
-
-	ctAccessKey, ok := cfg["access_key"].(string)
-	if !ok || ctAccessKey == "" {
-		return nil, fmt.Errorf("access_key is required and must be a string")
-	}
-	ctSecretKey, ok := cfg["secret_key"].(string)
-	if !ok || ctSecretKey == "" {
-		return nil, fmt.Errorf("secret_key is required and must be a string")
+	commonConfig, err := parseCommonConfig(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("parse common config error: %w", err)
 	}
 
 	// 解析证书字符串
-	certBundle, err := core.ParseCertBundle([]byte(certStr), []byte(keyStr))
+	certBundle, err := core.ParseCertBundle([]byte(commonConfig.Cert), []byte(commonConfig.Key))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse cert bundle: %w", err)
 	}
 
-	// 1. 检查证书是否过期
+	// 检查证书是否过期
 	if certBundle.IsExpired() {
 		return nil, fmt.Errorf("证书已过期 %s", certBundle.NotAfter.Format(time.DateTime))
 	}
 
 	// 创建请求客户端
-	openapiClient, err := openapi.NewClient(ccms.Endpoint, ctAccessKey, ctSecretKey)
+	openapiClient, err := openapi.NewClient(ccms.Endpoint, commonConfig.AccessKey, commonConfig.SecretKey)
 	if err != nil {
 		return nil, fmt.Errorf("创建请求客户端错误: %w", err)
 	}
-	// openapiClient.WithDebug()
+	if commonConfig.Debug {
+		openapiClient.WithDebug()
+	}
 
-	// 1. 上传证书
-	isExist, err := ccms.Action(openapiClient, certBundle)
+	// 上传证书
+	isExist, err := ccms.Action(ctx, openapiClient, certBundle)
 	if err != nil {
 		return nil, err
 	}
@@ -280,7 +313,8 @@ func deployCcmsAction(cfg map[string]any) (*core.Response, error) {
 			Status:  "success",
 			Message: "证书已存在",
 			Result: map[string]any{
-				"cert": certBundle.ResultInfo(),
+				"cert_note":        certBundle.GetNoteShort(),
+				"cert_expiry_time": certBundle.NotAfter.Format(time.DateTime),
 			},
 		}, nil
 	}
