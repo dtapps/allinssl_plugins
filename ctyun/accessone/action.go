@@ -22,8 +22,8 @@ func Action(ctx context.Context, openapiClient *openapi.Client, domain string, c
 	var queryDomainInfo types.CommonResponse[types.AccessoneQueryDomainInfoResponse]
 	_, err = openapiClient.R().
 		SetBodyMap(map[string]any{
-			"product_code": productCode, // 产品类型
 			"domain":       domain,      // 域名
+			"product_code": productCode, // 产品类型
 		}).
 		SetResult(&queryDomainInfo).
 		SetContext(ctx).
@@ -94,7 +94,7 @@ func Action(ctx context.Context, openapiClient *openapi.Client, domain string, c
 		}).
 		SetResult(&updateDomainInfo).
 		SetContext(ctx).
-		Post("/ctapi/v1/accessone/domain/modify_config")
+		Post("/ctapi/v1/scdn/domain/modify_config")
 	if err != nil {
 		return false, fmt.Errorf("更新域名信息错误: %w", err)
 	}
