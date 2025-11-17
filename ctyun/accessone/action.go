@@ -52,9 +52,9 @@ func Action(ctx context.Context, openapiClient *openapi.Client, domain string, c
 	}
 
 	// 4. 证书不存在就上传证书
-	if !certBundle.IsSameCertificateNote(certBundle.GetNoteShort(), queryCertInfo.ReturnObj.Name) {
+	if !certBundle.IsSameCertificateNote(certBundle.GetNoteShort(), queryCertInfo.ReturnObj.Result.Name) {
 		// 加载 API 证书
-		apiCertBundle, err := certBundle.LoadApiCert([]byte(queryCertInfo.ReturnObj.Certs), []byte(queryCertInfo.ReturnObj.Key))
+		apiCertBundle, err := certBundle.LoadApiCert([]byte(queryCertInfo.ReturnObj.Result.Certs), []byte(queryCertInfo.ReturnObj.Result.Key))
 		if err != nil {
 			return false, fmt.Errorf("加载 API 证书错误: %w", err)
 		}

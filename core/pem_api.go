@@ -1,5 +1,7 @@
 package core
 
+import "fmt"
+
 // APIBundle 表示一对证书（本地证书 + API证书）
 type APICertBundle struct {
 	Local *CertBundle // 本地证书
@@ -8,6 +10,9 @@ type APICertBundle struct {
 
 // LoadApiCert 在已有的 CertBundle 基础上，加载 API 证书并返回 APIBundle
 func (cb *CertBundle) LoadApiCert(certPEMData, keyPEMData []byte) (*APICertBundle, error) {
+	if len(certPEMData) == 0 || len(keyPEMData) == 0 {
+		return nil, fmt.Errorf("certPEMData or keyPEMData is empty")
+	}
 	apiBundle, err := ParseCertBundle(certPEMData, keyPEMData)
 	if err != nil {
 		return nil, err
