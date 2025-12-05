@@ -88,9 +88,10 @@ func Action(ctx context.Context, openapiClient *openapi.Client, domain string, c
 	var updateDomainInfo types.CommonResponse[any]
 	_, err = openapiClient.R().
 		SetBodyMap(map[string]any{
-			"domain":       domain,                    // 域名
-			"product_code": productCode,               // 产品类型
-			"cert_name":    certBundle.GetNoteShort(), // 证书备注名
+			"domain":       domain,                           // 域名
+			"product_code": productCode,                      // 产品类型
+			"origin":       queryDomainInfo.ReturnObj.Origin, // 域名信息
+			"cert_name":    certBundle.GetNoteShort(),        // 证书备注名
 		}).
 		SetResult(&updateDomainInfo).
 		SetContext(ctx).

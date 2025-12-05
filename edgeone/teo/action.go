@@ -54,6 +54,7 @@ func Action(ctx context.Context, openapiClient *openapi.Client, certBundle *core
 			"Limit":  200, // 每页数量
 		}).
 		SetResult(&dmainListResp).
+		SetContext(ctx).
 		Post(Endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("[%s]查询加速域名列表 错误: %w", par.Domain, err)
@@ -109,6 +110,7 @@ func Action(ctx context.Context, openapiClient *openapi.Client, certBundle *core
 			}, // SSL 证书配置
 		}).
 		SetResult(&dmainConfigSslResp).
+		SetContext(ctx).
 		Post(Endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("[%s]配置域名证书 错误: %w", par.Domain, err)

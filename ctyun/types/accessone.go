@@ -5,6 +5,7 @@ package types
 type AccessoneQueryDomainInfoResponse struct {
 	Domain   string `json:"domain"`    // 域名
 	CertName string `json:"cert_name"` // 证书备注名
+	Origin   any    `json:"origin"`    // 源站信息
 }
 
 // 边缘安全加速平台 查询证书详情 响应参数

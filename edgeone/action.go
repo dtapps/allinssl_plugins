@@ -80,7 +80,7 @@ func deployTeoAction(cfg map[string]any) (*core.Response, error) {
 		return nil, fmt.Errorf("zone_id is required and must be a string")
 	}
 
-	// 加速域名
+	// 域名
 	domain, ok := cfg["domain"].(string)
 	if !ok || domain == "" {
 		return nil, fmt.Errorf("domain is required and must be a string")
@@ -116,6 +116,9 @@ func deployTeoAction(cfg map[string]any) (*core.Response, error) {
 
 	// 域名绑定证书
 	for _, domain := range userDomains {
+		if domain == "" {
+			continue
+		}
 		_, err := teo.Action(ctx, openapiClient, certBundle, &teo.Params{
 			Debug:  commonConfig.Debug,
 			ZoneID: zoneID,
